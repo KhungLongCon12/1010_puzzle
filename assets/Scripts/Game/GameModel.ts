@@ -1,20 +1,49 @@
-import { _decorator, Component, Node, Prefab } from "cc";
+import { _decorator, Camera, Component, Node, Prefab } from "cc";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameModel")
 export class GameModel extends Component {
+  @property({ type: Camera })
+  private camera: Camera;
+
   @property({ type: Prefab })
   private gridSquare: Prefab;
+
+  @property({ type: Prefab })
+  private square: Prefab;
+
+  @property({ type: Prefab })
+  private shadowBlock: Prefab;
 
   private columns: number = 10;
   private rows: number = 10;
 
+  public get Camera(): Camera {
+    return this.camera;
+  }
+  public set Camera(camera: Camera) {
+    this.camera = camera;
+  }
+
   public get GridSquare(): Prefab {
     return this.gridSquare;
   }
-
   public set GridSquare(gridSq: Prefab) {
     this.gridSquare = gridSq;
+  }
+
+  public get Square(): Prefab {
+    return this.square;
+  }
+  public set Square(square: Prefab) {
+    this.square = square;
+  }
+
+  public get ShadowBlock(): Prefab {
+    return this.shadowBlock;
+  }
+  public set ShadowBlock(shadow: Prefab) {
+    this.shadowBlock = shadow;
   }
 
   public get Columns(): number {

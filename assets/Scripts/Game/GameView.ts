@@ -7,10 +7,10 @@ export class GameView extends Component {
   private gridNode: Node | null = null;
 
   @property({ type: Node })
-  private shapeStore: Node | null = null;
+  private shapeContainer: Node[] = [];
 
   @property({ type: SpriteFrame })
-  private squareFrames: SpriteFrame[] = [];
+  private squareColorFrames: SpriteFrame[] = [];
 
   public get GridNode(): Node {
     return this.gridNode;
@@ -19,17 +19,17 @@ export class GameView extends Component {
     this.gridNode = gridNode;
   }
 
-  public get ShapeStore(): Node {
-    return this.shapeStore;
+  public get ShapeContainer(): Node[] {
+    return this.shapeContainer;
   }
-  public set ShapeStore(shapeStore: Node) {
-    this.shapeStore = shapeStore;
+  public set ShapeContainer(shapeContainer: Node[]) {
+    this.shapeContainer = shapeContainer;
   }
 
-  public get SquareFrames(): SpriteFrame[] {
-    return this.squareFrames;
+  public get SquareColorFrames(): SpriteFrame[] {
+    return this.squareColorFrames;
   }
-  public set SquareFrames(squareFrames: SpriteFrame[]) {
-    this.squareFrames = squareFrames;
+  public set SquareColorFrames(squareColorFrames: SpriteFrame[]) {
+    this.squareColorFrames = squareColorFrames;
   }
 }
