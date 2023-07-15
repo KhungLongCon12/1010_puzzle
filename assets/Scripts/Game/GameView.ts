@@ -1,4 +1,13 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame } from "cc";
+import {
+  _decorator,
+  Component,
+  instantiate,
+  Node,
+  Prefab,
+  Sprite,
+  SpriteFrame,
+  Vec3,
+} from "cc";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameView")
@@ -12,13 +21,6 @@ export class GameView extends Component {
   @property({ type: SpriteFrame })
   private squareColorFrames: SpriteFrame[] = [];
 
-  public get GridNode(): Node {
-    return this.gridNode;
-  }
-  public set GridNode(gridNode: Node) {
-    this.gridNode = gridNode;
-  }
-
   public get ShapeContainer(): Node[] {
     return this.shapeContainer;
   }
@@ -31,5 +33,46 @@ export class GameView extends Component {
   }
   public set SquareColorFrames(squareColorFrames: SpriteFrame[]) {
     this.squareColorFrames = squareColorFrames;
+  }
+
+  private gridBackground: Node[][] = [];
+
+  private squaresGap: number = -0.5;
+  private gridSize: number = 50;
+
+  // create BackGround
+  spawnGridSquares(GridSquare: Prefab, Rows: number, Columns: number) {
+    for (let row = 0; row < Rows; ++row) {
+      this.gridBackground.push([]);
+
+      for (let column = 0; column < Columns; ++column) {
+        const newGridSquare = instantiate(GridSquare);
+
+        this.gridNode.addChild(newGridSquare);
+        this.gridBackground[row].push(newGridSquare);
+
+        newGridSquare.position = new Vec3(
+          (-Columns / 2 + column - this.squaresGap) * this.gridSize,
+          (Rows / 2 - row + this.squaresGap) * this.gridSize,
+
+          0
+        );
+      }
+    }
+  }
+
+  setMapAfterPutInGrid(
+    arr: number[][],
+    Rows: number,
+    Columns: number,
+    curSprite: SpriteFrame
+  ) {
+    for (let row = 0; row < Rows; row++)
+      for (let col = 0; col < Columns; col++) {
+        if (arr[row][col] === 1) {
+          this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
+            curSprite;
+        }
+      }
   }
 }

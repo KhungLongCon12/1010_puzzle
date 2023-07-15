@@ -1,14 +1,13 @@
 import {
   _decorator,
   Component,
-  CurveRange,
+  EventMouse,
   EventTouch,
   instantiate,
   Node,
-  Prefab,
   randomRangeInt,
   Sprite,
-  v3,
+  SpriteFrame,
   Vec2,
   Vec3,
 } from "cc";
@@ -29,33 +28,61 @@ export class GameControl extends Component {
   private shapeContainer: Node;
 
   private shadowBlock: Node | null = null;
+  private newBlock: Node | null;
+  private curBlock: Node | null = null;
 
-  private squaresGap: number = -0.5;
-  private gridSize: number = 50;
+  private currentSprite: SpriteFrame | null;
+
+  private gridMap: (number | null)[][] = [];
+  private arrNewBlock: number[][][] = [];
+  private activeBlock: Node[] = [];
+
+  private remainingBlocks: number = 0;
   private blockIndex: number = 0;
+  private indexBlock: number;
   private randType: number;
   private randTypeColor: number;
   private randBlock: number;
 
   private isMoving: boolean = false;
+  private isShapeMoved: boolean = false;
 
   private squarePiecePos: Vec2 = new Vec2(0, 0);
   private startBlockPos: Vec3 = new Vec3(0, 0, 0);
+  private mousePos: Vec3 = new Vec3(0, 0, 0);
 
   protected start(): void {
     this.createGrid();
     this.initListener();
     this.spawnNewBlock();
+    this.initMap();
   }
 
   createGrid() {
-    this.spawnGridSquares();
+    this.view.spawnGridSquares(
+      this.model.GridSquare,
+      this.model.Rows,
+      this.model.Columns
+    );
+  }
+
+  private initMap() {
+    for (let row = 0; row < this.model.Rows; row++) {
+      this.gridMap.push([]);
+      for (let col = 0; col < this.model.Columns; col++) {
+        this.gridMap[row].push(0);
+      }
+    }
   }
 
   private initListener(): void {
     const selectedNodes = this.view.ShapeContainer.slice(0, 3);
-    selectedNodes.forEach((node) => (node.active = true));
+
     selectedNodes.forEach((node) => {
+      node.active = true;
+    });
+
+    selectedNodes.forEach((node, index) => {
       node.on(
         Node.EventType.TOUCH_START,
         (event) => {
@@ -75,34 +102,48 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_END,
         (event) => {
-          this.onTouchEnd(event, node);
+          this.onTouchEnd(event, node, index);
         },
         this
       );
     });
+
+    this.shapeContainer.on(
+      Node.EventType.MOUSE_UP,
+      (event) => {
+        this.putArrayIntoMapGrid(event);
+      },
+      this.shapeContainer
+    );
   }
 
-  private onTouchStart(event: EventTouch, node?: Node): void {
+  private onTouchStart(event: EventTouch, node: Node): void {
     this.startBlockPos = node.position.clone();
     this.isMoving = true;
     node.setScale(2, 2);
 
-    this.createShadowBox(node, event);
+    this.getCurrentColorSpriteWhenClick(node);
+
+    // this.createShadowBox(node, event);
   }
 
-  private onTouchMove(event: EventTouch, node?: Node) {
+  private onTouchMove(event: EventTouch, node: Node) {
     if (this.isMoving === true) {
       node.position = this.getLocation(event);
-      this.updateShadowBlockPos(node);
+      // this.updateShadowBlockPos(node);
+
+      this.isShapeMoved = true;
     }
   }
 
-  private onTouchEnd(event: EventTouch, node?: Node) {
+  private onTouchEnd(event: EventTouch, node: Node, index: number) {
+    this.indexBlock = index;
     this.isMoving = false;
+
     node.setScale(1, 1);
     node.position = new Vec3(this.startBlockPos);
 
-    this.destroyShadowBlock();
+    // this.destroyShadowBlock();
   }
 
   //get Location Mouse
@@ -118,24 +159,9 @@ export class GameControl extends Component {
       new Vec3(location.x, location.y)
     );
 
+    console.log("check Move", v3);
+
     return v3;
-  }
-
-  // create BackGround
-  spawnGridSquares() {
-    for (let row = 0; row < this.model.Rows; ++row) {
-      for (let column = 0; column < this.model.Columns; ++column) {
-        const newGridSquare = instantiate(this.model.GridSquare);
-        console.log("getPos", newGridSquare.position);
-
-        this.view.GridNode.addChild(newGridSquare);
-        newGridSquare.position = new Vec3(
-          (-this.model.Rows / 2 + row + this.squaresGap) * this.gridSize,
-          (-this.model.Columns / 2 + column + this.squaresGap) * this.gridSize,
-          0
-        );
-      }
-    }
   }
 
   getRandomBlock() {
@@ -147,7 +173,6 @@ export class GameControl extends Component {
 
   spawnNewBlock() {
     for (let i = 0; i < this.view.ShapeContainer.length; i++) {
-      console.log(this.view.ShapeContainer.length);
       this.getRandomBlock();
       switch (this.randType) {
         case 1:
@@ -171,6 +196,8 @@ export class GameControl extends Component {
       }
       this.blockIndex++;
     }
+
+    this.remainingBlocks = this.view.ShapeContainer.length;
   }
 
   private createBlockFromShape(arr: number): void {
@@ -179,12 +206,15 @@ export class GameControl extends Component {
         break;
       case 1:
         const colorSp = this.view.SquareColorFrames[this.randTypeColor];
-        const newBlock = instantiate(this.model.Square);
-        newBlock.getComponent(Sprite).spriteFrame = colorSp;
+        this.newBlock = instantiate(this.model.Square);
 
-        this.view.ShapeContainer[this.blockIndex].addChild(newBlock);
-
-        newBlock.setPosition(this.squarePiecePos.x, this.squarePiecePos.y, 0);
+        this.newBlock.getComponent(Sprite).spriteFrame = colorSp;
+        this.newBlock.setPosition(
+          this.squarePiecePos.x,
+          this.squarePiecePos.y,
+          0
+        );
+        this.view.ShapeContainer[this.blockIndex].addChild(this.newBlock);
         break;
       default:
         break;
@@ -193,6 +223,8 @@ export class GameControl extends Component {
 
   // get ShapeData to initiate block
   private setSquarePos(): void {
+    this.arrNewBlock.push(ShapeData[this.randType - 1].shapes[this.randBlock]);
+
     for (let j = 0; j < 5; j++) {
       if (j === 0) {
         this.squarePiecePos.y = 40;
@@ -212,29 +244,103 @@ export class GameControl extends Component {
     }
   }
 
-  createShadowBox(block: Node, event?: EventTouch): void {
-    this.shadowBlock = instantiate(this.model.ShadowBlock);
-    this.shapeContainer.addChild(this.shadowBlock);
+  // createShadowBox(block: Node, event?: EventTouch): void {
+  //   this.shadowBlock = instantiate(this.model.ShadowBlock);
+  //   this.shapeContainer.addChild(this.shadowBlock);
 
-    this.shadowBlock.position = new Vec3(block.position);
-    this.shadowBlock.position = this.getLocation(event);
-    this.shadowBlock.setScale(0.8, 0.8);
+  //   this.shadowBlock.position = new Vec3(block.position);
+  //   this.shadowBlock.position = this.getLocation(event);
+  //   this.shadowBlock.setScale(0.8, 0.8);
 
-    this.updateShadowBlockPos(block);
+  //   this.updateShadowBlockPos(block);
+  // }
+
+  // destroyShadowBlock(): void {
+  //   if (this.shadowBlock) {
+  //     this.shadowBlock.destroy();
+  //     this.shadowBlock = null;
+  //   }
+  // }
+
+  // updateShadowBlockPos(block: Node): void {
+  //   if (this.shadowBlock) {
+  //     this.shadowBlock.position = block.position
+  //       .clone()
+  //       .add(new Vec3(0, -50, 0));
+  //   }
+  // }
+
+  private putArrayIntoMapGrid(event: EventMouse) {
+    if (this.isShapeMoved) {
+      this.mousePos = this.model.Camera.screenToWorld(
+        new Vec3(event.getLocation().x, event.getLocation().y, 0)
+      );
+
+      let newPos = new Vec3();
+
+      newPos = this.shapeContainer.inverseTransformPoint(newPos, this.mousePos);
+
+      let x = Math.floor((newPos.x + 500 / 2) / 50) + 1;
+      let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
+
+      this.checkBlock(y, x);
+
+      console.log(x, y);
+    }
+
+    this.isShapeMoved = false;
   }
 
-  destroyShadowBlock(): void {
-    if (this.shadowBlock) {
-      this.shadowBlock.destroy();
-      this.shadowBlock = null;
+  private checkBlock(x: number, y: number) {
+    let a: number = 0;
+    let b: number = 0;
+
+    let temp: number[][] = this.gridMap;
+
+    for (let i = x - 2; i < x + 2; i++) {
+      b = 0;
+      for (let j = y - 2; j < y + 2; j++) {
+        if (i < 0 || j < 0 || i > 9 || j > 9) {
+          if (this.arrNewBlock[this.indexBlock][a][b] === 1) {
+            return;
+          }
+        } else {
+          if (this.arrNewBlock[this.indexBlock][a][b] === 1) {
+            if (temp[i][j] === 0) {
+              temp[i][j] = 1;
+            } else return;
+          }
+        }
+
+        b++;
+      }
+      a++;
+    }
+    this.gridMap = temp;
+    console.log("array grid ->", this.gridMap);
+
+    this.view.setMapAfterPutInGrid(
+      temp,
+      this.model.Rows,
+      this.model.Columns,
+      this.currentSprite
+    );
+
+    if (this.curBlock) {
+      this.curBlock.destroy();
+      this.curBlock = null;
+      this.activeBlock.splice(this.activeBlock.indexOf(this.curBlock), 1);
+      this.remainingBlocks--;
+
+      if (this.remainingBlocks === 0) {
+        this.spawnNewBlock();
+      }
     }
   }
 
-  updateShadowBlockPos(block: Node): void {
-    if (this.shadowBlock) {
-      this.shadowBlock.position = block.position
-        .clone()
-        .add(new Vec3(0, -50, 0));
-    }
+  getCurrentColorSpriteWhenClick(node: Node) {
+    this.currentSprite = node
+      .getChildByName("ShapePiece")
+      .getComponent(Sprite).spriteFrame;
   }
 }
