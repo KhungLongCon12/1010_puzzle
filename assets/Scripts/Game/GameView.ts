@@ -61,17 +61,22 @@ export class GameView extends Component {
     }
   }
 
-  setMapAfterPutInGrid(
-    arr: number[][],
-    Rows: number,
-    Columns: number,
-    curSprite: SpriteFrame
-  ) {
+  setMapAfterPutInGrid(arr: number[][], Rows: number, Columns: number) {
+    // for (let row = 0; row < Rows; row++)
+    //   for (let col = 0; col < Columns; col++) {
+    //     if (arr[row][col] === 1) {
+    //       this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
+    //         curSprite;
+    //     }
+    //   }
     for (let row = 0; row < Rows; row++)
       for (let col = 0; col < Columns; col++) {
-        if (arr[row][col] === 1) {
+        if (arr[row][col] > 0) {
           this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
-            curSprite;
+            this.squareColorFrames[arr[row][col] - 1];
+        } else if (arr[row][col] === 0) {
+          this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
+            this.squareColorFrames[8];
         }
       }
   }

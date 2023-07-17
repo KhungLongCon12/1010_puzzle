@@ -7,7 +7,6 @@ import {
   Node,
   randomRangeInt,
   Sprite,
-  SpriteFrame,
   Vec2,
   Vec3,
 } from "cc";
@@ -27,13 +26,11 @@ export class GameControl extends Component {
   @property({ type: Node })
   private shapeContainer: Node;
 
-  private shadowBlock: Node | null = null;
   private newBlock: Node | null;
   private curBlock: Node | null = null;
 
-  private currentSprite: SpriteFrame | null;
-
   private gridMap: (number | null)[][] = [];
+  private gridMapColor: (number | null)[][] = [];
   private arrNewBlock: number[][][] = [];
   private activeBlock: Node[] = [];
 
@@ -43,6 +40,7 @@ export class GameControl extends Component {
   private randType: number;
   private randTypeColor: number;
   private randBlock: number;
+  private curIndexSprite: number = 0;
 
   private isMoving: boolean = false;
   private isShapeMoved: boolean = false;
@@ -58,7 +56,7 @@ export class GameControl extends Component {
     this.initMap();
   }
 
-  createGrid() {
+  private createGrid(): void {
     this.view.spawnGridSquares(
       this.model.GridSquare,
       this.model.Rows,
@@ -66,11 +64,13 @@ export class GameControl extends Component {
     );
   }
 
-  private initMap() {
+  private initMap(): void {
     for (let row = 0; row < this.model.Rows; row++) {
       this.gridMap.push([]);
+      this.gridMapColor.push([]);
       for (let col = 0; col < this.model.Columns; col++) {
         this.gridMap[row].push(0);
+        this.gridMapColor[row].push(0);
       }
     }
   }
@@ -122,28 +122,23 @@ export class GameControl extends Component {
     this.isMoving = true;
     node.setScale(2, 2);
 
-    this.getCurrentColorSpriteWhenClick(node);
-
-    // this.createShadowBox(node, event);
+    this.curIndexSprite = parseInt(node.children[0].name) + 1;
   }
 
   private onTouchMove(event: EventTouch, node: Node) {
     if (this.isMoving === true) {
       node.position = this.getLocation(event);
-      // this.updateShadowBlockPos(node);
 
       this.isShapeMoved = true;
     }
   }
 
-  private onTouchEnd(event: EventTouch, node: Node, index: number) {
+  private onTouchEnd(event: EventTouch, node: Node, index: number): void {
     this.indexBlock = index;
     this.isMoving = false;
 
     node.setScale(1, 1);
     node.position = new Vec3(this.startBlockPos);
-
-    // this.destroyShadowBlock();
   }
 
   //get Location Mouse
@@ -159,21 +154,22 @@ export class GameControl extends Component {
       new Vec3(location.x, location.y)
     );
 
-    console.log("check Move", v3);
-
     return v3;
   }
 
-  getRandomBlock() {
+  private getRandomBlock(): void {
     this.randType = randomRangeInt(1, 6);
     let max = ShapeData[this.randType - 1].shapes.length - 1;
-    this.randTypeColor = randomRangeInt(0, 7);
+
     this.randBlock = randomRangeInt(0, max);
+
+    this.randTypeColor = randomRangeInt(0, 7);
   }
 
-  spawnNewBlock() {
+  private spawnNewBlock(): void {
     for (let i = 0; i < this.view.ShapeContainer.length; i++) {
       this.getRandomBlock();
+
       switch (this.randType) {
         case 1:
           this.setSquarePos();
@@ -206,8 +202,9 @@ export class GameControl extends Component {
         break;
       case 1:
         const colorSp = this.view.SquareColorFrames[this.randTypeColor];
-        this.newBlock = instantiate(this.model.Square);
 
+        this.newBlock = instantiate(this.model.Square);
+        this.newBlock.name = this.randTypeColor.toString();
         this.newBlock.getComponent(Sprite).spriteFrame = colorSp;
         this.newBlock.setPosition(
           this.squarePiecePos.x,
@@ -244,33 +241,7 @@ export class GameControl extends Component {
     }
   }
 
-  // createShadowBox(block: Node, event?: EventTouch): void {
-  //   this.shadowBlock = instantiate(this.model.ShadowBlock);
-  //   this.shapeContainer.addChild(this.shadowBlock);
-
-  //   this.shadowBlock.position = new Vec3(block.position);
-  //   this.shadowBlock.position = this.getLocation(event);
-  //   this.shadowBlock.setScale(0.8, 0.8);
-
-  //   this.updateShadowBlockPos(block);
-  // }
-
-  // destroyShadowBlock(): void {
-  //   if (this.shadowBlock) {
-  //     this.shadowBlock.destroy();
-  //     this.shadowBlock = null;
-  //   }
-  // }
-
-  // updateShadowBlockPos(block: Node): void {
-  //   if (this.shadowBlock) {
-  //     this.shadowBlock.position = block.position
-  //       .clone()
-  //       .add(new Vec3(0, -50, 0));
-  //   }
-  // }
-
-  private putArrayIntoMapGrid(event: EventMouse) {
+  private putArrayIntoMapGrid(event: EventMouse): void {
     if (this.isShapeMoved) {
       this.mousePos = this.model.Camera.screenToWorld(
         new Vec3(event.getLocation().x, event.getLocation().y, 0)
@@ -284,18 +255,17 @@ export class GameControl extends Component {
       let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
 
       this.checkBlock(y, x);
-
-      console.log(x, y);
     }
 
     this.isShapeMoved = false;
   }
 
-  private checkBlock(x: number, y: number) {
+  private checkBlock(x: number, y: number): void {
     let a: number = 0;
     let b: number = 0;
 
     let temp: number[][] = this.gridMap;
+    let tempColor: number[][] = this.gridMapColor;
 
     for (let i = x - 2; i < x + 2; i++) {
       b = 0;
@@ -306,8 +276,9 @@ export class GameControl extends Component {
           }
         } else {
           if (this.arrNewBlock[this.indexBlock][a][b] === 1) {
-            if (temp[i][j] === 0) {
+            if (temp[i][j] === 0 && tempColor[i][j] === 0) {
               temp[i][j] = 1;
+              tempColor[i][j] = this.curIndexSprite;
             } else return;
           }
         }
@@ -317,13 +288,18 @@ export class GameControl extends Component {
       a++;
     }
     this.gridMap = temp;
-    console.log("array grid ->", this.gridMap);
+    this.gridMapColor = tempColor;
 
+    this.clearRowColum(temp);
+
+    console.log("gridMap ->", this.gridMap);
+    console.log("gridMapColor ->", this.gridMapColor);
+
+    // show color in grid
     this.view.setMapAfterPutInGrid(
-      temp,
+      tempColor,
       this.model.Rows,
-      this.model.Columns,
-      this.currentSprite
+      this.model.Columns
     );
 
     if (this.curBlock) {
@@ -338,9 +314,76 @@ export class GameControl extends Component {
     }
   }
 
-  getCurrentColorSpriteWhenClick(node: Node) {
-    this.currentSprite = node
-      .getChildByName("ShapePiece")
-      .getComponent(Sprite).spriteFrame;
+  private clearRowColum(arr: number[][]): void {
+    const size = this.gridMap.length;
+    let clearedRowsCount = 0;
+    let clearedColumnsCount = 0;
+
+    for (let row = size - 1; row >= 0; row--) {
+      if (this.isRowFull(row)) {
+        this.clearRowAndColor(row);
+        clearedRowsCount++;
+      }
+    }
+
+    for (let col = size - 1; col >= 0; col--) {
+      if (this.isColumnFull(col)) {
+        this.clearColumn(col);
+        clearedColumnsCount++;
+      }
+    }
+  }
+
+  private isRowFull(row: number): boolean {
+    const size = this.gridMap.length;
+
+    for (let col = 0; col < size; col++) {
+      if (this.gridMap[row][col] === 0 && this.gridMapColor[row][col] === 0) {
+        return false;
+      }
+    }
+
+    console.log("clear Row");
+    return true;
+  }
+
+  private isColumnFull(col: number): boolean {
+    const size = this.gridMap.length;
+
+    for (let row = 0; row < size; row++) {
+      if (this.gridMap[row][col] === 0 && this.gridMapColor[row][col] === 0) {
+        return false;
+      }
+    }
+
+    console.log("clear Col");
+    return true;
+  }
+
+  private clearRowAndColor(row: number): void {
+    const size = this.gridMap.length;
+    const sizeColor = this.gridMapColor.length;
+
+    for (let col = 0; col < size; col++) {
+      this.gridMap[row][col] = 0; // Set the value to the desired empty or default value
+    }
+
+    for (let colColor = 0; colColor < sizeColor; colColor++) {
+      this.gridMapColor[row][colColor] = 0;
+    }
+  }
+
+  // Function to clear a column
+  private clearColumn(col: number): void {
+    const size = this.gridMap.length;
+    const sizeColor = this.gridMapColor.length;
+
+    for (let row = 0; row < size; row++) {
+      this.gridMap[row][col] = 0; // Set the value to the desired empty or default value
+    }
+
+    for (let rowColor = 0; rowColor < sizeColor; rowColor++) {
+      this.gridMapColor[rowColor][col] = 0;
+    }
   }
 }
