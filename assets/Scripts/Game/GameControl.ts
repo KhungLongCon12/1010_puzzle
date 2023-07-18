@@ -151,7 +151,7 @@ export class GameControl extends Component {
 
     this.shapeContainer.inverseTransformPoint(
       v3,
-      new Vec3(location.x, location.y)
+      new Vec3(location.x + 25, location.y + 25)
     );
 
     return v3;
@@ -255,7 +255,16 @@ export class GameControl extends Component {
       let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
 
       this.checkBlock(y, x);
+
+      console.log(x, y);
     }
+
+    // Deleted color in grid
+    this.view.updateGridAfterEat(
+      this.gridMapColor,
+      this.model.Rows,
+      this.model.Columns
+    );
 
     this.isShapeMoved = false;
   }
@@ -267,9 +276,9 @@ export class GameControl extends Component {
     let temp: number[][] = this.gridMap;
     let tempColor: number[][] = this.gridMapColor;
 
-    for (let i = x - 2; i < x + 2; i++) {
+    for (let i = x - 2; i <= x + 2; i++) {
       b = 0;
-      for (let j = y - 2; j < y + 2; j++) {
+      for (let j = y - 2; j <= y + 2; j++) {
         if (i < 0 || j < 0 || i > 9 || j > 9) {
           if (this.arrNewBlock[this.indexBlock][a][b] === 1) {
             return;
@@ -291,9 +300,6 @@ export class GameControl extends Component {
     this.gridMapColor = tempColor;
 
     this.clearRowColum(temp);
-
-    console.log("gridMap ->", this.gridMap);
-    console.log("gridMapColor ->", this.gridMapColor);
 
     // show color in grid
     this.view.setMapAfterPutInGrid(
@@ -328,7 +334,7 @@ export class GameControl extends Component {
 
     for (let col = size - 1; col >= 0; col--) {
       if (this.isColumnFull(col)) {
-        this.clearColumn(col);
+        this.clearColumnAndColor(col);
         clearedColumnsCount++;
       }
     }
@@ -343,7 +349,6 @@ export class GameControl extends Component {
       }
     }
 
-    console.log("clear Row");
     return true;
   }
 
@@ -356,10 +361,10 @@ export class GameControl extends Component {
       }
     }
 
-    console.log("clear Col");
     return true;
   }
 
+  // Function to clear a row
   private clearRowAndColor(row: number): void {
     const size = this.gridMap.length;
     const sizeColor = this.gridMapColor.length;
@@ -374,7 +379,7 @@ export class GameControl extends Component {
   }
 
   // Function to clear a column
-  private clearColumn(col: number): void {
+  private clearColumnAndColor(col: number): void {
     const size = this.gridMap.length;
     const sizeColor = this.gridMapColor.length;
 
