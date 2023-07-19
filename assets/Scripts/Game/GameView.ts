@@ -75,8 +75,6 @@ export class GameView extends Component {
     for (let row = 0; row < Rows; row++)
       for (let col = 0; col < Columns; col++) {
         if (arr[row][col] === 0) {
-          const a = arr[row][col];
-
           // this.gridBackground[row][col].getScale()
           this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
             this.squareColorFrames[8];

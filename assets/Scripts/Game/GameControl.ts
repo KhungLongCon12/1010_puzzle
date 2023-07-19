@@ -169,37 +169,38 @@ export class GameControl extends Component {
   private getRandomShape() {
     const shapeCount = ShapeData.length;
     const randomIndex = Math.floor(Math.random() * shapeCount);
-    console.log(shapeCount);
 
     return ShapeData[randomIndex].shapes;
   }
 
   private spawnNewBlock(): void {
-    for (let i = 0; i < this.view.ShapeContainer.length; i++) {
-      this.getRandomBlock();
-      this.getRandomShape();
+    if (this.view.ShapeContainer.length != 0) {
+      for (let i = 0; i < this.view.ShapeContainer.length; i++) {
+        this.getRandomBlock();
+        this.getRandomShape();
 
-      switch (this.randType) {
-        case 1:
-          this.setSquarePos();
-          break;
-        case 2:
-          this.setSquarePos();
-          break;
-        case 3:
-          this.setSquarePos();
-          break;
-        case 4:
-          this.setSquarePos();
-          break;
-        case 5:
-          this.setSquarePos();
-          break;
-        case 6:
-          this.setSquarePos();
-          break;
+        switch (this.randType) {
+          case 1:
+            this.setSquarePos();
+            break;
+          case 2:
+            this.setSquarePos();
+            break;
+          case 3:
+            this.setSquarePos();
+            break;
+          case 4:
+            this.setSquarePos();
+            break;
+          case 5:
+            this.setSquarePos();
+            break;
+          case 6:
+            this.setSquarePos();
+            break;
+        }
+        this.blockIndex++;
       }
-      this.blockIndex++;
     }
 
     this.remainingBlocks = this.view.ShapeContainer.length;
@@ -268,6 +269,8 @@ export class GameControl extends Component {
       this.checkBlock(y, x);
     }
 
+    console.log(this.view.ShapeContainer.length);
+
     // Deleted color in grid
     this.view.updateGridAfterEat(
       this.gridMapColor,
@@ -310,23 +313,14 @@ export class GameControl extends Component {
 
     this.clearRowColum(temp);
 
+    // this.checkEatRowCol();
+
     // show color in grid
     this.view.setMapAfterPutInGrid(
       tempColor,
       this.model.Rows,
       this.model.Columns
     );
-
-    if (this.curBlock) {
-      this.curBlock.destroy();
-      this.curBlock = null;
-      this.activeBlock.splice(this.activeBlock.indexOf(this.curBlock), 1);
-      this.remainingBlocks--;
-
-      if (this.remainingBlocks === 0) {
-        this.spawnNewBlock();
-      }
-    }
   }
 
   private clearRowColum(arr: number[][]): void {
@@ -334,19 +328,36 @@ export class GameControl extends Component {
     let clearedRowsCount = 0;
     let clearedColumnsCount = 0;
 
+    let clearRow: Array<boolean> = [];
+    let clearCol: Array<boolean> = [];
+
     for (let row = size - 1; row >= 0; row--) {
+      let temp = false;
       if (this.isRowFull(row)) {
-        this.clearRowAndColor(row);
+        //  this.clearRowAndColor(row);
         clearedRowsCount++;
+        temp = true;
       }
+      clearRow.push(temp);
     }
 
     for (let col = size - 1; col >= 0; col--) {
+      let temp = false;
       if (this.isColumnFull(col)) {
-        this.clearColumnAndColor(col);
+        //   this.clearColumnAndColor(col);
         clearedColumnsCount++;
+        temp = true;
       }
+      clearCol.push(temp);
     }
+
+    for (let i = 0; i < size; i++) {
+      if (clearRow[i]) this.clearRowAndColor(size - 1 - i);
+      if (clearCol[i]) this.clearColumnAndColor(size - 1 - i);
+    }
+
+    console.log("Count row ->", clearedRowsCount);
+    console.log("Count col ->", clearedColumnsCount);
   }
 
   private isRowFull(row: number): boolean {

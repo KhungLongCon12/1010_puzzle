@@ -1,15 +1,11 @@
 import {
   _decorator,
-  Animation,
   AudioSource,
   Component,
   director,
   Node,
-  randomRangeInt,
   tween,
   TweenSystem,
-  v2,
-  Vec2,
   Vec3,
 } from "cc";
 const { ccclass, property } = _decorator;
@@ -28,6 +24,8 @@ export class MainMenu extends Component {
   @property({ type: Node })
   private muteVolume: Node | null = null;
 
+  private muted: number = 1;
+
   protected onLoad(): void {
     this.handlePlayHover();
   }
@@ -37,8 +35,6 @@ export class MainMenu extends Component {
   }
 
   private handlePlayHover(): void {
-    console.log("hover");
-
     this.buttonPlay.on(Node.EventType.MOUSE_ENTER, () => {
       const scaleTo: Vec3 = new Vec3(1.1, 1.1, 1);
       const duration = 0.5;
@@ -76,10 +72,9 @@ export class MainMenu extends Component {
   }
 
   private handleVolume(): void {
-    let muted: number = 1;
-    muted = this.musicBackGround.volume === 1 ? 0 : 1;
+    this.muted = this.musicBackGround.volume === 1 ? 0 : 1;
 
-    if (muted === 1) {
+    if (this.muted === 1) {
       this.volume.active = true;
       this.muteVolume.active = false;
     } else {
@@ -87,6 +82,6 @@ export class MainMenu extends Component {
       this.muteVolume.active = true;
     }
 
-    this.musicBackGround.volume = muted;
+    this.musicBackGround.volume = this.muted;
   }
 }
