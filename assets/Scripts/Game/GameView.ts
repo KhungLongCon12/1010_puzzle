@@ -6,7 +6,6 @@ import {
   Prefab,
   Sprite,
   SpriteFrame,
-  UITransform,
   Vec3,
 } from "cc";
 const { ccclass, property } = _decorator;
@@ -77,7 +76,7 @@ export class GameView extends Component {
       for (let col = 0; col < Columns; col++) {
         if (arr[row][col] === 0) {
           const a = arr[row][col];
-          console.log("check ->", a);
+
           // this.gridBackground[row][col].getScale()
           this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
             this.squareColorFrames[8];

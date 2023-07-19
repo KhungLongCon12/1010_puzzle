@@ -158,7 +158,7 @@ export class GameControl extends Component {
   }
 
   private getRandomBlock(): void {
-    this.randType = randomRangeInt(1, 6);
+    this.randType = randomRangeInt(1, 5);
     let max = ShapeData[this.randType - 1].shapes.length - 1;
 
     this.randBlock = randomRangeInt(0, max);
@@ -166,9 +166,18 @@ export class GameControl extends Component {
     this.randTypeColor = randomRangeInt(0, 7);
   }
 
+  private getRandomShape() {
+    const shapeCount = ShapeData.length;
+    const randomIndex = Math.floor(Math.random() * shapeCount);
+    console.log(shapeCount);
+
+    return ShapeData[randomIndex].shapes;
+  }
+
   private spawnNewBlock(): void {
     for (let i = 0; i < this.view.ShapeContainer.length; i++) {
       this.getRandomBlock();
+      this.getRandomShape();
 
       switch (this.randType) {
         case 1:
@@ -211,8 +220,10 @@ export class GameControl extends Component {
           this.squarePiecePos.y,
           0
         );
+
         this.view.ShapeContainer[this.blockIndex].addChild(this.newBlock);
         break;
+
       default:
         break;
     }
@@ -255,8 +266,6 @@ export class GameControl extends Component {
       let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
 
       this.checkBlock(y, x);
-
-      console.log(x, y);
     }
 
     // Deleted color in grid
