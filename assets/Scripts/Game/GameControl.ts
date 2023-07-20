@@ -165,7 +165,8 @@ export class GameControl extends Component {
 
   private getRandomBlock(): void {
     this.randType = randomRangeInt(1, 5);
-    let max = ShapeData[this.randType - 1].shapes.length - 1;
+
+    let max = ShapeData[this.randType - 1].shapes.length - 1; // get children array
 
     this.randBlock = randomRangeInt(0, max);
 
@@ -174,11 +175,16 @@ export class GameControl extends Component {
     // let countDataLength: number = 0;
     // ShapeData.forEach((element) => {
     //   countDataLength += element.shapes.length;
+    //   console.log("check ->", element.shapes.length);
     // });
+
     // let randomNumber = randomRangeInt(1, countDataLength - 1);
+
     // //Percent to random all Shapes in DataShapes
     // for (let i = 0; i < ShapeData.length; i++) {
     //   if (randomNumber - ShapeData[i].shapes.length <= 0) {
+    //     console.log("check Shape ->", ShapeData[i].shapes.length);
+
     //     this.randType = i;
     //     this.randBlock = randomNumber;
     //     return;
@@ -192,6 +198,7 @@ export class GameControl extends Component {
   private spawnNewBlock(): void {
     for (let i = 0; i < this.view.ShapeContainer.length; i++) {
       this.getRandomBlock();
+      console.log(this.randType, this.randBlock);
       // this.getRandomShape();
 
       switch (this.randType) {
@@ -241,8 +248,8 @@ export class GameControl extends Component {
 
   // get ShapeData to initiate block
   private setSquarePos(): void {
-    console.log("check randType", this.randType);
     this.arrNewBlock.push(ShapeData[this.randType - 1].shapes[this.randBlock]);
+
     for (let j = 0; j < 5; j++) {
       if (j === 0) {
         this.squarePiecePos.y = 40;
@@ -253,9 +260,12 @@ export class GameControl extends Component {
           this.squarePiecePos.x = -40;
         }
 
+        // const arr = ShapeData[this.randType - 1].shapes[this.randBlock][j][i];
+
         this.createBlockFromShape(
           ShapeData[this.randType - 1].shapes[this.randBlock][j][i]
         );
+
         this.squarePiecePos.x += 25;
       }
 
@@ -277,8 +287,6 @@ export class GameControl extends Component {
       let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
 
       this.checkBlock(y, x);
-
-      this.view.ShapeContainer[this.indexBlock].removeAllChildren();
     }
 
     // Deleted color in grid
@@ -318,6 +326,9 @@ export class GameControl extends Component {
       }
       a++;
     }
+
+    this.view.ShapeContainer[this.indexBlock].removeAllChildren();
+
     this.gridMap = temp;
     this.gridMapColor = tempColor;
 
@@ -370,9 +381,6 @@ export class GameControl extends Component {
       if (clearRow[i]) this.clearRowAndColor(size - 1 - i);
       if (clearCol[i]) this.clearColumnAndColor(size - 1 - i);
     }
-
-    console.log("Count row ->", clearedRowsCount);
-    console.log("Count col ->", clearedColumnsCount);
   }
 
   private isRowFull(row: number): boolean {
@@ -432,6 +440,8 @@ export class GameControl extends Component {
       this.blockIndex = 0;
       this.isSpawn = false;
       this.remainingBlocks = 0;
+
+      this.arrNewBlock.length = 0;
 
       this.spawnNewBlock();
     }
