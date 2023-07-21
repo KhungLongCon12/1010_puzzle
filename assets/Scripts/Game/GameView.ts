@@ -1,6 +1,7 @@
 import {
   _decorator,
   Component,
+  director,
   instantiate,
   Node,
   Prefab,
@@ -21,6 +22,24 @@ export class GameView extends Component {
   @property({ type: SpriteFrame })
   private squareColorFrames: SpriteFrame[] = [];
 
+  @property({ type: Node })
+  private currentScore: Node | null = null;
+
+  @property({ type: Node })
+  private highScore: Node | null = null;
+
+  @property({ type: Node })
+  private lightOn: Node | null = null;
+
+  @property({ type: Node })
+  private lightOff: Node | null = null;
+
+  @property({ type: Node })
+  private volumeOn: Node | null = null;
+
+  @property({ type: Node })
+  private volumeOff: Node | null = null;
+
   public get ShapeContainer(): Node[] {
     return this.shapeContainer;
   }
@@ -39,6 +58,14 @@ export class GameView extends Component {
 
   private squaresGap: number = -0.5;
   private gridSize: number = 50;
+
+  protected start(): void {
+    this.readLocalStorage();
+  }
+
+  private readLocalStorage(): void {
+    console.log("read");
+  }
 
   // create BackGround
   spawnGridSquares(GridSquare: Prefab, Rows: number, Columns: number) {
@@ -79,5 +106,17 @@ export class GameView extends Component {
             this.squareColorFrames[8];
         }
       }
+  }
+
+  handleReplayBtn() {
+    director.loadScene("GamePlay");
+  }
+
+  handleDarkModeBtn() {
+    console.log("Dark Mode");
+  }
+
+  handleCheckVolumeBtn() {
+    console.log("check vol");
   }
 }

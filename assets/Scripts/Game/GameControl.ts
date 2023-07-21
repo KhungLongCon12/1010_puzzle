@@ -13,6 +13,7 @@ import {
 import { GameModel } from "./GameModel";
 import { GameView } from "./GameView";
 import { ShapeData } from "../Data/ShapeData";
+import { MusicGame } from "./MusicGame";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameControl")
@@ -22,6 +23,9 @@ export class GameControl extends Component {
 
   @property({ type: GameView })
   private view: GameView;
+
+  @property({ type: MusicGame })
+  private music: MusicGame;
 
   @property({ type: Node })
   private shapeContainer: Node;
@@ -49,10 +53,16 @@ export class GameControl extends Component {
   private mousePos: Vec3 = new Vec3(0, 0, 0);
 
   protected start(): void {
+    this.startGame();
+  }
+
+  private startGame(): void {
     this.createGrid();
     this.initListener();
     this.spawnNewBlock();
     this.initMap();
+
+    this.music.onAudioQueue();
   }
 
   private createGrid(): void {
