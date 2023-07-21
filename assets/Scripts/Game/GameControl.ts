@@ -1,6 +1,7 @@
 import {
   _decorator,
   Component,
+  director,
   EventMouse,
   EventTouch,
   instantiate,
@@ -48,6 +49,8 @@ export class GameControl extends Component {
   private isShapeMoved: boolean = false;
   private isSpawn: boolean = false;
 
+  // private isLose: boolean = false;
+
   private squarePiecePos: Vec2 = new Vec2(0, 0);
   private startBlockPos: Vec3 = new Vec3(0, 0, 0);
   private mousePos: Vec3 = new Vec3(0, 0, 0);
@@ -57,12 +60,17 @@ export class GameControl extends Component {
   }
 
   private startGame(): void {
+    const indexSound = randomRangeInt(0, 1);
     this.createGrid();
     this.initListener();
     this.spawnNewBlock();
     this.initMap();
 
-    this.music.onAudioQueue();
+    if (indexSound === 1) {
+      this.music.onAudioQueue(1);
+    } else {
+      this.music.onAudioQueue(0);
+    }
   }
 
   private createGrid(): void {
@@ -181,28 +189,6 @@ export class GameControl extends Component {
     this.randBlock = randomRangeInt(0, max);
 
     this.randTypeColor = randomRangeInt(0, 7);
-
-    // let countDataLength: number = 0;
-    // ShapeData.forEach((element) => {
-    //   countDataLength += element.shapes.length;
-    //   console.log("check ->", element.shapes.length);
-    // });
-
-    // let randomNumber = randomRangeInt(1, countDataLength - 1);
-
-    // //Percent to random all Shapes in DataShapes
-    // for (let i = 0; i < ShapeData.length; i++) {
-    //   if (randomNumber - ShapeData[i].shapes.length <= 0) {
-    //     console.log("check Shape ->", ShapeData[i].shapes.length);
-
-    //     this.randType = i;
-    //     this.randBlock = randomNumber;
-    //     return;
-    //   } else {
-    //     randomNumber -= ShapeData[i].shapes.length;
-    //   }
-    // }
-    // this.randTypeColor = randomRangeInt(0, 7);
   }
 
   private spawnNewBlock(): void {
@@ -455,5 +441,9 @@ export class GameControl extends Component {
 
       this.spawnNewBlock();
     }
+  }
+
+  private handleReplay(): void {
+    director.loadScene("GamePlay");
   }
 }

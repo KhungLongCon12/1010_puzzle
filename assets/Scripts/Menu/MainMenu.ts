@@ -4,6 +4,7 @@ import {
   Component,
   director,
   Node,
+  sys,
   tween,
   TweenSystem,
   Vec3,
@@ -23,10 +24,12 @@ export class MainMenu extends Component {
   private buttonPlay: Node | null = null;
 
   private muted: number = 1;
-  private darkModeOn: boolean = true;
+  private darkMode: boolean = false; // true: turn on  ----- false: turn off
 
   protected onLoad(): void {
     this.handlePlayHover();
+    sys.localStorage.setItem("statusMode1010", JSON.stringify(this.darkMode));
+    sys.localStorage.setItem("statusCheckVol1010", JSON.stringify(this.muted));
   }
 
   protected update(dt: number): void {
@@ -67,18 +70,16 @@ export class MainMenu extends Component {
   }
 
   private handleDarkMode(): void {
-    this.darkModeOn = this.darkModeOn === true ? false : true;
-    this.view.lightAndDarkMode(this.darkModeOn);
-    this.view.saveStatusMode(this.darkModeOn);
+    this.view.lightAndDarkMode(this.darkMode);
+    this.darkMode = this.darkMode ? false : true;
+    this.view.saveStatusMode(this.darkMode);
   }
 
   private handleVolume(): void {
     this.muted = this.musicBackGround.volume === 1 ? 0 : 1;
-
+    this.view.saveStatusVol(this.muted);
     this.view.volumeOnOff(this.muted);
 
     this.musicBackGround.volume = this.muted;
-
-    this.view.saveStatusVol(this.muted);
   }
 }

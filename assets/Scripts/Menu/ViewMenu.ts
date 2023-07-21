@@ -24,17 +24,15 @@ export class ViewMenu extends Component {
   @property({ type: Label })
   private nameGame: Label | null = null;
 
-  public lightAndDarkMode(status: boolean): void {
-    if (status) {
+  public lightAndDarkMode(modeOn: boolean): void {
+    if (!modeOn) {
       this.lightMode.active = false;
       this.darkMode.active = true;
-      // status = false;
 
       this.backGround.color = color(0, 0, 0, 255);
       this.title.color = color(255, 255, 255, 255);
       this.nameGame.color = color(255, 255, 255, 255);
     } else {
-      // status = true;
       this.lightMode.active = true;
       this.darkMode.active = false;
 
@@ -54,11 +52,11 @@ export class ViewMenu extends Component {
     }
   }
 
-  saveStatusMode(status: boolean) {
-    sys.localStorage.setItem("statusMode1010", JSON.stringify(status));
+  saveStatusMode(modeOn: boolean) {
+    sys.localStorage.setItem("statusMode1010", JSON.stringify(modeOn));
   }
 
-  saveStatusVol(status: number) {
-    sys.localStorage.setItem("statusCheckVol1010", JSON.stringify(status));
+  saveStatusVol(checkVol: number) {
+    sys.localStorage.setItem("statusCheckVol1010", JSON.stringify(checkVol));
   }
 }

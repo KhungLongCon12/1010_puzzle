@@ -1,5 +1,7 @@
 import {
   _decorator,
+  AudioSource,
+  color,
   Component,
   director,
   instantiate,
@@ -7,14 +9,25 @@ import {
   Prefab,
   Sprite,
   SpriteFrame,
+  sys,
   Vec3,
 } from "cc";
+import { MusicGame } from "./MusicGame";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameView")
 export class GameView extends Component {
+  @property({ type: AudioSource })
+  private audio: AudioSource;
+
   @property({ type: Node })
   private gridNode: Node | null = null;
+
+  @property({ type: Sprite })
+  private topBackGround: Sprite | null = null;
+
+  @property({ type: Sprite })
+  private backGround: Sprite | null = null;
 
   @property({ type: Node })
   private shapeContainer: Node[] = [];
@@ -58,6 +71,8 @@ export class GameView extends Component {
 
   private squaresGap: number = -0.5;
   private gridSize: number = 50;
+  private darkMode: boolean;
+  private checkVolume: number;
 
   protected start(): void {
     this.readLocalStorage();
@@ -65,6 +80,35 @@ export class GameView extends Component {
 
   private readLocalStorage(): void {
     console.log("read");
+    this.darkMode = JSON.parse(sys.localStorage.getItem("statusMode1010"));
+
+    this.checkVolume = JSON.parse(
+      sys.localStorage.getItem("statusCheckVol1010")
+    );
+
+    if (this.darkMode) {
+      this.lightOn.active = false;
+      this.lightOff.active = true;
+
+      this.topBackGround.color = color(0, 0, 0, 255);
+      this.backGround.color = color(0, 0, 0, 255);
+    } else {
+      this.lightOn.active = true;
+      this.lightOff.active = false;
+
+      this.topBackGround.color = color(255, 255, 255, 255);
+      this.backGround.color = color(255, 255, 255, 255);
+    }
+
+    if (this.checkVolume === 1) {
+      this.volumeOn.active = true;
+      this.volumeOff.active = false;
+      this.audio.volume = this.checkVolume;
+    } else {
+      this.volumeOn.active = false;
+      this.volumeOff.active = true;
+      this.audio.volume = this.checkVolume;
+    }
   }
 
   // create BackGround
@@ -108,15 +152,36 @@ export class GameView extends Component {
       }
   }
 
-  handleReplayBtn() {
-    director.loadScene("GamePlay");
-  }
-
   handleDarkModeBtn() {
-    console.log("Dark Mode");
+    console.log("mode", this.darkMode);
+    if (!this.darkMode) {
+      this.lightOn.active = false;
+      this.lightOff.active = true;
+
+      this.topBackGround.color = color(0, 0, 0, 255);
+      this.backGround.color = color(0, 0, 0, 255);
+    } else {
+      this.lightOn.active = true;
+      this.lightOff.active = false;
+
+      this.topBackGround.color = color(255, 255, 255, 255);
+      this.backGround.color = color(255, 255, 255, 255);
+    }
+    this.darkMode = this.darkMode ? false : true;
   }
 
   handleCheckVolumeBtn() {
-    console.log("check vol");
+    // this.checkVolume = this.music.getVol() === 1 ? 0 : 1;
+
+    this.checkVolume = this.audio.volume === 1 ? 0 : 1;
+    if (this.checkVolume === 1) {
+      this.volumeOn.active = true;
+      this.volumeOff.active = false;
+    } else {
+      this.volumeOn.active = false;
+      this.volumeOff.active = true;
+    }
+
+    this.audio.volume = this.checkVolume;
   }
 }
