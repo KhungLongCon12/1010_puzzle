@@ -188,7 +188,7 @@ export class GameControl extends Component {
 
     this.randBlock = randomRangeInt(0, max);
 
-    this.randTypeColor = randomRangeInt(0, 7);
+    this.randTypeColor = randomRangeInt(0, 5);
   }
 
   private spawnNewBlock(): void {

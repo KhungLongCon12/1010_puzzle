@@ -27,6 +27,9 @@ export class GameView extends Component {
   private topBackGround: Sprite | null = null;
 
   @property({ type: Sprite })
+  private layout: Sprite | null = null;
+
+  @property({ type: Sprite })
   private backGround: Sprite | null = null;
 
   @property({ type: Node })
@@ -76,6 +79,11 @@ export class GameView extends Component {
 
   protected start(): void {
     this.readLocalStorage();
+    this.pushLocalStorage();
+  }
+
+  private pushLocalStorage(): void {
+    sys.localStorage.setItem("highScore1010", JSON.stringify(this.highScore));
   }
 
   private readLocalStorage(): void {
@@ -92,12 +100,14 @@ export class GameView extends Component {
 
       this.topBackGround.color = color(0, 0, 0, 255);
       this.backGround.color = color(0, 0, 0, 255);
+      this.layout.color = color(0, 0, 0, 255);
     } else {
       this.lightOn.active = true;
       this.lightOff.active = false;
 
       this.topBackGround.color = color(255, 255, 255, 255);
       this.backGround.color = color(255, 255, 255, 255);
+      this.layout.color = color(255, 255, 255, 128);
     }
 
     if (this.checkVolume === 1) {
@@ -147,7 +157,7 @@ export class GameView extends Component {
       for (let col = 0; col < Columns; col++) {
         if (arr[row][col] === 0) {
           this.gridBackground[row][col].getComponent(Sprite).spriteFrame =
-            this.squareColorFrames[8];
+            this.squareColorFrames[5];
         }
       }
   }
@@ -160,12 +170,14 @@ export class GameView extends Component {
 
       this.topBackGround.color = color(0, 0, 0, 255);
       this.backGround.color = color(0, 0, 0, 255);
+      this.layout.color = color(0, 0, 0, 255);
     } else {
       this.lightOn.active = true;
       this.lightOff.active = false;
 
       this.topBackGround.color = color(255, 255, 255, 255);
       this.backGround.color = color(255, 255, 255, 255);
+      this.layout.color = color(255, 255, 255, 128);
     }
     this.darkMode = this.darkMode ? false : true;
   }
