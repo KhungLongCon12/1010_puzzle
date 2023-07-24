@@ -44,6 +44,9 @@ export class GameControl extends Component {
   private randTypeColor: number;
   private randBlock: number;
   private curIndexSprite: number = 0;
+  private countBlockInShapes: number = 0;
+  private sumPoint: number = 0;
+  //   private comboEat: number = 0; // clearedRow + clearedCol
 
   private isMoving: boolean = false;
   private isShapeMoved: boolean = false;
@@ -127,18 +130,18 @@ export class GameControl extends Component {
         Node.EventType.TOUCH_END,
         (event) => {
           this.onTouchEnd(event, node, index);
+          this.putArrayIntoMapGrid(event);
         },
         this
       );
     });
-
-    this.shapeContainer.on(
-      Node.EventType.MOUSE_UP,
-      (event) => {
-        this.putArrayIntoMapGrid(event);
-      },
-      this.shapeContainer
-    );
+    //   this.shapeContainer.on(
+    //     Node.EventType.TOUCH_END,
+    //     (event) => {
+    //       this.putArrayIntoMapGrid(event);
+    //     },
+    //     this.shapeContainer
+    //   );
   }
 
   private onTouchStart(event: EventTouch, node: Node): void {
@@ -153,6 +156,7 @@ export class GameControl extends Component {
     if (this.isMoving === true) {
       node.position = this.getLocation(event);
 
+      this.countBlockInShapes = node.children.length;
       this.isShapeMoved = true;
     }
   }
@@ -194,7 +198,6 @@ export class GameControl extends Component {
   private spawnNewBlock(): void {
     for (let i = 0; i < this.view.ShapeContainer.length; i++) {
       this.getRandomBlock();
-      console.log(this.randType, this.randBlock);
       // this.getRandomShape();
 
       switch (this.randType) {
@@ -256,8 +259,6 @@ export class GameControl extends Component {
           this.squarePiecePos.x = -40;
         }
 
-        // const arr = ShapeData[this.randType - 1].shapes[this.randBlock][j][i];
-
         this.createBlockFromShape(
           ShapeData[this.randType - 1].shapes[this.randBlock][j][i]
         );
@@ -271,11 +272,11 @@ export class GameControl extends Component {
 
   private putArrayIntoMapGrid(event: EventMouse): void {
     if (this.isShapeMoved) {
+      let newPos = new Vec3();
+
       this.mousePos = this.model.Camera.screenToWorld(
         new Vec3(event.getLocation().x, event.getLocation().y, 0)
       );
-
-      let newPos = new Vec3();
 
       newPos = this.shapeContainer.inverseTransformPoint(newPos, this.mousePos);
 
@@ -283,6 +284,8 @@ export class GameControl extends Component {
       let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
 
       this.checkBlock(y, x);
+
+      this.view.showResult(this.sumPoint);
     }
 
     // Deleted color in grid
@@ -323,12 +326,12 @@ export class GameControl extends Component {
       a++;
     }
 
+    this.sumPoint += this.countBlockInShapes;
+
     this.view.ShapeContainer[this.indexBlock].removeAllChildren();
 
     this.gridMap = temp;
     this.gridMapColor = tempColor;
-
-    console.log(this.gridMap);
 
     this.clearRowColum(temp);
 
@@ -342,13 +345,13 @@ export class GameControl extends Component {
     );
 
     this.remainingBlocks++;
-    console.log(this.remainingBlocks);
   }
 
   private clearRowColum(arr: number[][]): void {
     const size = this.gridMap.length;
-    let clearedRowsCount = 0;
-    let clearedColumnsCount = 0;
+    let clearedRowsCount: number = 0;
+    let clearedColumnsCount: number = 0;
+    let comboEat: number = 0;
 
     let clearRow: Array<boolean> = [];
     let clearCol: Array<boolean> = [];
@@ -356,7 +359,6 @@ export class GameControl extends Component {
     for (let row = size - 1; row >= 0; row--) {
       let temp = false;
       if (this.isRowFull(row)) {
-        //  this.clearRowAndColor(row);
         clearedRowsCount++;
         temp = true;
       }
@@ -366,7 +368,6 @@ export class GameControl extends Component {
     for (let col = size - 1; col >= 0; col--) {
       let temp = false;
       if (this.isColumnFull(col)) {
-        //   this.clearColumnAndColor(col);
         clearedColumnsCount++;
         temp = true;
       }
@@ -377,6 +378,12 @@ export class GameControl extends Component {
       if (clearRow[i]) this.clearRowAndColor(size - 1 - i);
       if (clearCol[i]) this.clearColumnAndColor(size - 1 - i);
     }
+
+    comboEat = clearedColumnsCount + clearedRowsCount;
+    console.log(clearedColumnsCount);
+    console.log(clearedRowsCount);
+    console.log("check combo->", comboEat);
+    this.makeCombo(comboEat, clearedRowsCount, clearedColumnsCount);
   }
 
   private isRowFull(row: number): boolean {
@@ -445,5 +452,14 @@ export class GameControl extends Component {
 
   private handleReplay(): void {
     director.loadScene("GamePlay");
+  }
+
+  private makeCombo(combo: number, clearRow: number, clearCol: number): void {
+    if (combo > 1) {
+      this.sumPoint += combo * 10;
+    } else if (clearRow === 1 || clearCol === 1) {
+      let clear: number = clearCol + clearRow;
+      this.sumPoint += clear * 10;
+    }
   }
 }

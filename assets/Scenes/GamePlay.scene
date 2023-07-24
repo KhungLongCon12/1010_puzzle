@@ -620,11 +620,11 @@
         "__expectedType__": "cc.SpriteFrame"
       }
     ],
-    "currentScore": {
-      "__id__": 22
+    "currentScoreLb": {
+      "__id__": 25
     },
-    "highScore": {
-      "__id__": 27
+    "highScoreLb": {
+      "__id__": 30
     },
     "lightOn": {
       "__id__": 7
@@ -652,7 +652,7 @@
     "_clip": null,
     "_loop": true,
     "_playOnAwake": false,
-    "_volume": 1,
+    "_volume": 0,
     "_id": "57mqGz2UhFK5T01GENAwTQ"
   },
   {
@@ -1744,7 +1744,9 @@
     "_enabled": true,
     "__prefab": null,
     "_alignFlags": 20,
-    "_target": null,
+    "_target": {
+      "__id__": 2
+    },
     "_left": 0,
     "_right": 0,
     "_top": 0,
@@ -1759,7 +1761,7 @@
     "_isAbsVerticalCenter": true,
     "_originalWidth": 0,
     "_originalHeight": 0,
-    "_alignMode": 2,
+    "_alignMode": 1,
     "_lockFlags": 0,
     "_id": "a7uPSqPylHzoyvtjlUtcP3"
   },

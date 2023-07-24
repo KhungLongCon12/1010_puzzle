@@ -17,6 +17,8 @@ export class GameModel extends Component {
 
   private columns: number = 10;
   private rows: number = 10;
+  // private highScore: number = 0;
+  // private curScore: number = 0;
 
   public get Camera(): Camera {
     return this.camera;
@@ -59,4 +61,18 @@ export class GameModel extends Component {
   public set Rows(row: number) {
     this.rows = row;
   }
+
+  // public get HighScore(): number {
+  //   return this.highScore;
+  // }
+  // public set HighScore(v: number) {
+  //   this.highScore = v;
+  // }
+
+  // public get CurScore(): number {
+  //   return this.curScore;
+  // }
+  // public set CurScore(v: number) {
+  //   this.curScore = v;
+  // }
 }

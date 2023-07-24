@@ -5,6 +5,7 @@ import {
   Component,
   director,
   instantiate,
+  Label,
   Node,
   Prefab,
   Sprite,
@@ -12,7 +13,6 @@ import {
   sys,
   Vec3,
 } from "cc";
-import { MusicGame } from "./MusicGame";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameView")
@@ -38,11 +38,11 @@ export class GameView extends Component {
   @property({ type: SpriteFrame })
   private squareColorFrames: SpriteFrame[] = [];
 
-  @property({ type: Node })
-  private currentScore: Node | null = null;
+  @property({ type: Label })
+  private currentScoreLb: Label | null = null;
 
-  @property({ type: Node })
-  private highScore: Node | null = null;
+  @property({ type: Label })
+  private highScoreLb: Label | null = null;
 
   @property({ type: Node })
   private lightOn: Node | null = null;
@@ -76,19 +76,25 @@ export class GameView extends Component {
   private gridSize: number = 50;
   private darkMode: boolean;
   private checkVolume: number;
+  private highScore: number = 0;
 
   protected start(): void {
     this.readLocalStorage();
-    this.pushLocalStorage();
-  }
-
-  private pushLocalStorage(): void {
-    sys.localStorage.setItem("highScore1010", JSON.stringify(this.highScore));
   }
 
   private readLocalStorage(): void {
     console.log("read");
     this.darkMode = JSON.parse(sys.localStorage.getItem("statusMode1010"));
+
+    // read and check highScore
+    this.highScore = JSON.parse(sys.localStorage.getItem("highScore1010"));
+    if (this.highScore === 0 || this.highScore === null) {
+      sys.localStorage.setItem("highScore1010", JSON.stringify(this.highScore));
+      console.log("Check set HighScore");
+    } else {
+      this.highScore = JSON.parse(sys.localStorage.getItem("highScore1010"));
+      this.highScoreLb.string = `Best score: ${this.highScore}`;
+    }
 
     this.checkVolume = JSON.parse(
       sys.localStorage.getItem("statusCheckVol1010")
@@ -195,5 +201,16 @@ export class GameView extends Component {
     }
 
     this.audio.volume = this.checkVolume;
+  }
+
+  showResult(curSc: number) {
+    if (curSc > this.highScore) {
+      this.highScoreLb.string = `Best score: ${curSc}`;
+      this.currentScoreLb.string = `${curSc}`;
+
+      sys.localStorage.setItem("highScore1010", JSON.stringify(curSc));
+    } else {
+      this.currentScoreLb.string = `${curSc}`;
+    }
   }
 }
