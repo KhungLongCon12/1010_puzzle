@@ -36,6 +36,7 @@ export class GameControl extends Component {
   private gridMap: (number | null)[][] = [];
   private gridMapColor: (number | null)[][] = [];
   private arrNewBlock: number[][][] = [];
+  private statusBlock: boolean[] = [true, true, true];
 
   private remainingBlocks: number = 0;
   private blockIndex: number = 0;
@@ -46,13 +47,10 @@ export class GameControl extends Component {
   private curIndexSprite: number = 0;
   private countBlockInShapes: number = 0;
   private sumPoint: number = 0;
-  //   private comboEat: number = 0; // clearedRow + clearedCol
 
   private isMoving: boolean = false;
   private isShapeMoved: boolean = false;
   private isSpawn: boolean = false;
-
-  // private isLose: boolean = false;
 
   private squarePiecePos: Vec2 = new Vec2(0, 0);
   private startBlockPos: Vec3 = new Vec3(0, 0, 0);
@@ -131,17 +129,12 @@ export class GameControl extends Component {
         (event) => {
           this.onTouchEnd(event, node, index);
           this.putArrayIntoMapGrid(event);
+
+          // if(!this.checkArray(this.arrNewBlock[0]))
         },
         this
       );
     });
-    //   this.shapeContainer.on(
-    //     Node.EventType.TOUCH_END,
-    //     (event) => {
-    //       this.putArrayIntoMapGrid(event);
-    //     },
-    //     this.shapeContainer
-    //   );
   }
 
   private onTouchStart(event: EventTouch, node: Node): void {
@@ -198,7 +191,6 @@ export class GameControl extends Component {
   private spawnNewBlock(): void {
     for (let i = 0; i < this.view.ShapeContainer.length; i++) {
       this.getRandomBlock();
-      // this.getRandomShape();
 
       switch (this.randType) {
         case 1:
@@ -335,8 +327,6 @@ export class GameControl extends Component {
 
     this.clearRowColum(temp);
 
-    // this.checkEatRowCol();
-
     // show color in grid
     this.view.setMapAfterPutInGrid(
       tempColor,
@@ -345,6 +335,10 @@ export class GameControl extends Component {
     );
 
     this.remainingBlocks++;
+
+    if (this.checkLose) {
+      console.log("lose game");
+    }
   }
 
   private clearRowColum(arr: number[][]): void {
@@ -380,9 +374,6 @@ export class GameControl extends Component {
     }
 
     comboEat = clearedColumnsCount + clearedRowsCount;
-    console.log(clearedColumnsCount);
-    console.log(clearedRowsCount);
-    console.log("check combo->", comboEat);
     this.makeCombo(comboEat, clearedRowsCount, clearedColumnsCount);
   }
 
@@ -440,11 +431,10 @@ export class GameControl extends Component {
 
   private spawnNewBlockAfterUsed() {
     if (this.isSpawn) {
-      this.blockIndex = 0;
       this.isSpawn = false;
-      this.remainingBlocks = 0;
-
+      this.blockIndex = 0;
       this.arrNewBlock.length = 0;
+      this.remainingBlocks = 0;
 
       this.spawnNewBlock();
     }
@@ -461,5 +451,59 @@ export class GameControl extends Component {
       let clear: number = clearCol + clearRow;
       this.sumPoint += clear * 10;
     }
+  }
+
+  private checkLose(): boolean {
+    let count: number = 0;
+
+    for (let a = 0; a < this.arrNewBlock.length; a++) {
+      console.log("run this");
+      if (this.browseLose(a)) {
+      } else {
+        count++;
+      }
+    }
+
+    if (count > 0) {
+      return false;
+    }
+    return true;
+  }
+
+  private browseLose(a: number): boolean {
+    for (let i = 0; i < this.gridMap.length; i++) {
+      for (let j = 0; j < this.gridMap.length; j++) {
+        if (this.gridMap[i][j] === 0) {
+          if (this.checkApprove(i, j, a)) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  private checkApprove(i: number, j: number, index: number): boolean {
+    let a = 0;
+    let b = 0;
+    for (let k = i - 2; k <= i + 2; k++) {
+      b = 0;
+      for (let l = j - 2; l <= j + 2; l++) {
+        if (k < 0 || l < 0 || k > 9 || l > 9) {
+          if (this.arrNewBlock[index][a][b] === 1) {
+            return false;
+          }
+        } else {
+          if (this.arrNewBlock[index][a][b] === 1) {
+            if (this.gridMap[k][l] !== 0) {
+              return false;
+            }
+          }
+        }
+        b++;
+      }
+      a++;
+    }
+    return true;
   }
 }
