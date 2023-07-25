@@ -12,9 +12,6 @@ export class GameModel extends Component {
   @property({ type: Prefab })
   private square: Prefab;
 
-  @property({ type: Prefab })
-  private shadowBlock: Prefab;
-
   private columns: number = 10;
   private rows: number = 10;
 
@@ -37,13 +34,6 @@ export class GameModel extends Component {
   }
   public set Square(square: Prefab) {
     this.square = square;
-  }
-
-  public get ShadowBlock(): Prefab {
-    return this.shadowBlock;
-  }
-  public set ShadowBlock(shadow: Prefab) {
-    this.shadowBlock = shadow;
   }
 
   public get Columns(): number {

@@ -1,5 +1,6 @@
 import {
   _decorator,
+  Animation,
   AudioSource,
   color,
   Component,
@@ -33,6 +34,9 @@ export class GameView extends Component {
   private backGround: Sprite | null = null;
 
   @property({ type: Node })
+  private gameOverPopUp: Node | null = null;
+
+  @property({ type: Node })
   private shapeContainer: Node[] = [];
 
   @property({ type: SpriteFrame })
@@ -43,6 +47,12 @@ export class GameView extends Component {
 
   @property({ type: Label })
   private highScoreLb: Label | null = null;
+
+  @property({ type: Label })
+  private currentScoreLbPop: Label | null = null;
+
+  @property({ type: Label })
+  private highScoreLbPop: Label | null = null;
 
   @property({ type: Node })
   private lightOn: Node | null = null;
@@ -83,14 +93,12 @@ export class GameView extends Component {
   }
 
   private readLocalStorage(): void {
-    console.log("read");
     this.darkMode = JSON.parse(sys.localStorage.getItem("statusMode1010"));
 
     // read and check highScore
     this.highScore = JSON.parse(sys.localStorage.getItem("highScore1010"));
     if (this.highScore === 0 || this.highScore === null) {
       sys.localStorage.setItem("highScore1010", JSON.stringify(this.highScore));
-      console.log("Check set HighScore");
     } else {
       this.highScore = JSON.parse(sys.localStorage.getItem("highScore1010"));
       this.highScoreLb.string = `Best score: ${this.highScore}`;
@@ -100,6 +108,10 @@ export class GameView extends Component {
       sys.localStorage.getItem("statusCheckVol1010")
     );
 
+    this.checkChangeScenes();
+  }
+
+  private checkChangeScenes(): void {
     if (this.darkMode) {
       this.lightOn.active = false;
       this.lightOff.active = true;
@@ -169,7 +181,6 @@ export class GameView extends Component {
   }
 
   handleDarkModeBtn() {
-    console.log("mode", this.darkMode);
     if (!this.darkMode) {
       this.lightOn.active = false;
       this.lightOff.active = true;
@@ -212,5 +223,17 @@ export class GameView extends Component {
     } else {
       this.currentScoreLb.string = `${curSc}`;
     }
+  }
+
+  gameOver(curSc: number): void {
+    this.gameOverPopUp.setPosition(0, 0, 0);
+    this.gameOverPopUp.getComponent(Animation).play();
+
+    this.currentScoreLbPop.string = `${curSc}`;
+
+    this.readLocalStorage();
+
+    console.log(this.highScore);
+    this.highScoreLbPop.string = `Best score: ${this.highScore}`;
   }
 }

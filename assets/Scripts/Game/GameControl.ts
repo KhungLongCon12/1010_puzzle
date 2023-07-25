@@ -1,5 +1,6 @@
 import {
   _decorator,
+  Animation,
   Component,
   director,
   EventMouse,
@@ -8,6 +9,7 @@ import {
   Node,
   randomRangeInt,
   Sprite,
+  TweenSystem,
   Vec2,
   Vec3,
 } from "cc";
@@ -87,6 +89,8 @@ export class GameControl extends Component {
       this.isSpawn = true;
       this.spawnNewBlockAfterUsed();
     }
+
+    TweenSystem.instance.update(dt);
   }
 
   private initMap(): void {
@@ -111,7 +115,7 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_START,
         (event) => {
-          this.onTouchStart(event, node);
+          if (this.statusBlock[index]) this.onTouchStart(event, node);
         },
         this
       );
@@ -119,7 +123,7 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_MOVE,
         (event) => {
-          this.onTouchMove(event, node);
+          if (this.statusBlock[index]) this.onTouchMove(event, node);
         },
         this
       );
@@ -127,10 +131,9 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_END,
         (event) => {
-          this.onTouchEnd(event, node, index);
-          this.putArrayIntoMapGrid(event);
+          if (this.statusBlock[index]) this.onTouchEnd(event, node, index);
 
-          // if(!this.checkArray(this.arrNewBlock[0]))
+          this.putArrayIntoMapGrid(event);
         },
         this
       );
@@ -317,15 +320,24 @@ export class GameControl extends Component {
       }
       a++;
     }
-
     this.sumPoint += this.countBlockInShapes;
-
     this.view.ShapeContainer[this.indexBlock].removeAllChildren();
+
+    this.statusBlock[this.indexBlock] = false;
+    this.checkResetStatus();
+    this.indexBlock = null;
 
     this.gridMap = temp;
     this.gridMapColor = tempColor;
 
     this.clearRowColum(temp);
+
+    const lose = this.checkLose();
+    if (lose) {
+      this.scheduleOnce(() => {
+        this.view.gameOver(this.sumPoint);
+      }, 1);
+    }
 
     // show color in grid
     this.view.setMapAfterPutInGrid(
@@ -335,10 +347,6 @@ export class GameControl extends Component {
     );
 
     this.remainingBlocks++;
-
-    if (this.checkLose) {
-      console.log("lose game");
-    }
   }
 
   private clearRowColum(arr: number[][]): void {
@@ -369,8 +377,12 @@ export class GameControl extends Component {
     }
 
     for (let i = 0; i < size; i++) {
-      if (clearRow[i]) this.clearRowAndColor(size - 1 - i);
-      if (clearCol[i]) this.clearColumnAndColor(size - 1 - i);
+      if (clearRow[i]) {
+        this.clearRowAndColor(size - 1 - i);
+      }
+      if (clearCol[i]) {
+        this.clearColumnAndColor(size - 1 - i);
+      }
     }
 
     comboEat = clearedColumnsCount + clearedRowsCount;
@@ -456,25 +468,27 @@ export class GameControl extends Component {
   private checkLose(): boolean {
     let count: number = 0;
 
-    for (let a = 0; a < this.arrNewBlock.length; a++) {
-      console.log("run this");
-      if (this.browseLose(a)) {
-      } else {
-        count++;
+    for (let i = 0; i < this.arrNewBlock.length; i++) {
+      if (this.statusBlock[i]) {
+        if (this.browseLose(i)) {
+        } else {
+          count++;
+        }
       }
     }
 
     if (count > 0) {
       return false;
     }
+
     return true;
   }
 
-  private browseLose(a: number): boolean {
+  private browseLose(value: number): boolean {
     for (let i = 0; i < this.gridMap.length; i++) {
       for (let j = 0; j < this.gridMap.length; j++) {
         if (this.gridMap[i][j] === 0) {
-          if (this.checkApprove(i, j, a)) {
+          if (this.checkApprove(i, j, value)) {
             return false;
           }
         }
@@ -484,8 +498,8 @@ export class GameControl extends Component {
   }
 
   private checkApprove(i: number, j: number, index: number): boolean {
-    let a = 0;
-    let b = 0;
+    let a: number = 0;
+    let b: number = 0;
     for (let k = i - 2; k <= i + 2; k++) {
       b = 0;
       for (let l = j - 2; l <= j + 2; l++) {
@@ -505,5 +519,14 @@ export class GameControl extends Component {
       a++;
     }
     return true;
+  }
+
+  private checkResetStatus() {
+    for (let i = 0; i < this.statusBlock.length; i++) {
+      if (this.statusBlock[i] === true) {
+        return;
+      }
+    }
+    this.statusBlock = [true, true, true];
   }
 }
