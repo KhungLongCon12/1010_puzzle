@@ -246,29 +246,35 @@ export class GameView extends Component {
     this.currentScoreLbPop.string = `${curSc}`;
     this.highScoreLbPop.string = `Best score: ${this.highScore}`;
 
-    console.log(id);
     await this.gameClient.match
       .completeMatch(id, {
         score: curSc,
       })
       .then((data) => {
-        console.log("check ->", id);
         console.log(curSc);
       })
       .catch((error) => console.log(error));
   }
 
-  animPoint(targetPoint: number, curPoint: number) {
-    let tmp = curPoint / 5 - 1;
-    let time = 0.5 / tmp;
-    this.schedule(
-      () => {
-        targetPoint += 5;
-        this.currentScoreLb.string = `${Math.floor(targetPoint)}`;
-      },
-      0,
-      tmp,
-      time
-    );
+  animPoint(curSc: number, countBlock: number) {
+    let tmp = 0;
+    let time = 150 / countBlock;
+    let lb = this.currentScoreLb;
+    let start = parseInt(lb.string);
+
+    const inter = setInterval(doInter, time);
+
+    function doInter() {
+      lb.string = `${Math.floor(start + 1)}`;
+      start++;
+      tmp++;
+
+      if (start === curSc) clearInterval(inter);
+    }
+  }
+
+  animEat(x: number, y: number) {
+    console.log("check eat ->", this.gridBackground[x][y]);
+    this.gridBackground[x][y].getComponent(Animation).play();
   }
 }

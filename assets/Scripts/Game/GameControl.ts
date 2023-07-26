@@ -1,5 +1,6 @@
 import {
   _decorator,
+  Button,
   Component,
   director,
   EventMouse,
@@ -36,6 +37,9 @@ export class GameControl extends Component {
   @property({ type: Node })
   private shapeContainer: Node;
 
+  @property({ type: Button })
+  private btnReplay: Button;
+
   private gameClient;
 
   private newBlock: Node | null;
@@ -53,7 +57,8 @@ export class GameControl extends Component {
   private randBlock: number;
   private curIndexSprite: number = 0;
   private countBlockInShapes: number = 0;
-  private sumPoint: number = 0;
+  private clearedRowsCount: number = 0;
+  private clearedColumnsCount: number = 0;
 
   private isMoving: boolean = false;
   private isShapeMoved: boolean = false;
@@ -68,19 +73,15 @@ export class GameControl extends Component {
     let _this = this;
     let parameters = find("GameClient");
     let gameClientParams = parameters.getComponent(StoreAPI);
-    // if (DEBUG === false) {
 
-    // }
     this.gameClient = gameClientParams.gameClient;
-    console.log("khoi tao", matchId);
 
     if (matchId === undefined) {
-      console.log("new");
       matchId = gameClientParams.matchId;
-      console.log(matchId);
     }
   }
 
+  // onGame
   protected start(): void {
     this.startGame();
   }
@@ -306,12 +307,12 @@ export class GameControl extends Component {
 
       newPos = this.shapeContainer.inverseTransformPoint(newPos, this.mousePos);
 
-      let x = Math.floor((newPos.x + 500 / 2) / 50) + 1;
-      let y = -Math.floor((newPos.y - 500 / 2) / 50) - 2;
+      let x = Math.floor((newPos.x + 525 / 2) / 50) + 1;
+      let y = -Math.floor((newPos.y - 525 / 2) / 50) - 2;
 
       this.checkBlock(y, x);
 
-      this.view.showResult(this.sumPoint);
+      this.view.showResult(this.model.Score);
     }
 
     // Deleted color in grid
@@ -352,7 +353,6 @@ export class GameControl extends Component {
       a++;
     }
 
-    this.sumPoint += this.countBlockInShapes;
     this.view.ShapeContainer[this.indexBlock].removeAllChildren();
 
     this.statusBlock[this.indexBlock] = false;
@@ -364,12 +364,13 @@ export class GameControl extends Component {
 
     this.clearRowColum(temp);
 
+    this.makeCombo(this.countBlockInShapes);
+
     const lose = this.checkLose();
     if (lose) {
-      console.log(matchId);
       this.disableInteractShapes();
       this.scheduleOnce(() => {
-        this.view.gameOver(this.sumPoint, matchId);
+        this.view.gameOver(this.model.Score, matchId);
       }, 1);
     }
 
@@ -385,9 +386,6 @@ export class GameControl extends Component {
 
   private clearRowColum(arr: number[][]): void {
     const size = this.gridMap.length;
-    let clearedRowsCount: number = 0;
-    let clearedColumnsCount: number = 0;
-    let comboEat: number = 0;
 
     let clearRow: Array<boolean> = [];
     let clearCol: Array<boolean> = [];
@@ -395,18 +393,20 @@ export class GameControl extends Component {
     for (let row = size - 1; row >= 0; row--) {
       let temp = false;
       if (this.isRowFull(row)) {
-        clearedRowsCount++;
+        this.clearedRowsCount++;
         temp = true;
       }
+      console.log("check row ->", clearRow);
       clearRow.push(temp);
     }
 
     for (let col = size - 1; col >= 0; col--) {
       let temp = false;
       if (this.isColumnFull(col)) {
-        clearedColumnsCount++;
+        this.clearedColumnsCount++;
         temp = true;
       }
+      console.log("check col ->", clearCol);
       clearCol.push(temp);
     }
 
@@ -418,10 +418,6 @@ export class GameControl extends Component {
         this.clearColumnAndColor(size - 1 - i);
       }
     }
-
-    comboEat = clearedColumnsCount + clearedRowsCount;
-    // this.view.animPoint(this.sumPoint, comboEat);
-    this.makeCombo(comboEat, clearedRowsCount, clearedColumnsCount);
   }
 
   private isRowFull(row: number): boolean {
@@ -491,23 +487,44 @@ export class GameControl extends Component {
     let parameters = find("GameClient");
     let gameClientParams = parameters.getComponent(StoreAPI);
 
-    await gameClientParams.gameClient.match
-      .startMatch()
-      .then((data) => {
-        matchId = data.matchId;
-        gameClientParams.matchId = matchId;
-        director.loadScene("GamePlay");
-      })
-      .catch((error) => console.log(error));
+    this.btnReplay.interactable = false;
+
+    if (this.checkLose()) {
+      await gameClientParams.gameClient.match
+        .startMatch()
+        .then((data) => {
+          matchId = data.matchId;
+          gameClientParams.matchId = matchId;
+          director.loadScene("GamePlay");
+        })
+        .catch((error) => console.log(error));
+    } else {
+      director.loadScene("GamePlay");
+    }
   }
 
-  private makeCombo(combo: number, clearRow: number, clearCol: number): void {
-    if (combo > 1) {
-      this.sumPoint += combo * 10;
-    } else if (clearRow === 1 || clearCol === 1) {
-      let clear: number = clearCol + clearRow;
-      this.sumPoint += clear * 10;
+  private makeCombo(blocks: number): void {
+    let eatCombo: number = this.clearedRowsCount + this.clearedColumnsCount; // count how many row and col is ate
+    let tmpCountBlock: number = blocks; // count block when take and put in grid
+    let isFullRowOrCol: number = 10;
+
+    if (eatCombo === 0) {
+      this.model.Score += tmpCountBlock;
+      this.view.animPoint(this.model.Score, tmpCountBlock);
+    } else if (eatCombo === 1) {
+      this.model.Score += isFullRowOrCol + tmpCountBlock;
+      this.view.animPoint(this.model.Score, tmpCountBlock);
+    } else if (eatCombo >= 2) {
+      let tmpScore: number = 0;
+      tmpScore = eatCombo * isFullRowOrCol + tmpCountBlock;
+
+      this.model.Score += tmpScore;
+      this.view.animPoint(this.model.Score, tmpCountBlock);
     }
+
+    this.countBlockInShapes = 0;
+    this.clearedColumnsCount = 0;
+    this.clearedRowsCount = 0;
   }
 
   private checkLose(): boolean {
@@ -574,4 +591,15 @@ export class GameControl extends Component {
     }
     this.statusBlock = [true, true, true];
   }
+
+  // private conditionPlayAnimEat() {
+  //   for (let i = 0; i < this.gridMap.length; i++) {
+  //     for (let j = 0; j < this.gridMap[i].length; j++) {
+  //       if (temp[i][j] === 1) {
+  //         this.gridMap[i][j] = 0;
+  //         this.view.animEat(i, j);
+  //       }
+  //     }
+  //   }
+  // }
 }

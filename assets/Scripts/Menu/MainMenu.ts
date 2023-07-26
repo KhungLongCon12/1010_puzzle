@@ -1,6 +1,7 @@
 import {
   _decorator,
   AudioSource,
+  Button,
   Component,
   director,
   find,
@@ -48,42 +49,40 @@ export class MainMenu extends Component {
       const scaleTo: Vec3 = new Vec3(1.1, 1.1, 1);
       const duration = 0.5;
 
-      const twe = tween(this.buttonPlay).to(
+      const hover = tween(this.buttonPlay).to(
         duration,
         { scale: scaleTo },
         { easing: "quadOut" }
       );
-      twe.start();
-      // this.buttonPlay.setScale(new Vec3(1.1, 1.1, 1));
+      hover.start();
     });
 
     this.buttonPlay.on(Node.EventType.MOUSE_LEAVE, () => {
       const scaleTo: Vec3 = new Vec3(1, 1, 1);
       const duration = 0.5;
 
-      const twe = tween(this.buttonPlay).to(
+      const hover = tween(this.buttonPlay).to(
         duration,
         { scale: scaleTo },
         { easing: "quadOut" }
       );
 
-      twe.start();
-      // this.buttonPlay.setScale(new Vec3(1, 1, 1));
+      hover.start();
     });
   }
 
   protected async handleBtnPlay(): Promise<void> {
-    let _this = this;
     let parameters = find("GameClient");
     let gameClientParams = parameters.getComponent(StoreAPI);
     this.gameClient = gameClientParams.gameClient;
 
-    // Khi bat dau game
+    this.buttonPlay.getComponent(Button).interactable = false;
+
+    // when gameStart
     await gameClientParams.gameClient.match
       .startMatch()
       .then((data) => {
         this.matchId = data.matchId;
-        console.log(this.matchId);
       })
       .catch((error) => console.log(error));
 

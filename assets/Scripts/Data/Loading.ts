@@ -23,12 +23,9 @@ export class Loading extends Component {
         );
         await this.gameClient
           .initAsync()
-          .then(() => {
-            console.log("run");
-          })
+          .then(() => {})
           .catch((err) => console.log(err));
       }
-      console.log(this.gameClient);
       let gameClientParams = parameters.addComponent(StoreAPI);
       gameClientParams.gameClient = this.gameClient;
       director.addPersistRootNode(parameters);

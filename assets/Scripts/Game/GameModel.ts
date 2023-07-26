@@ -14,6 +14,7 @@ export class GameModel extends Component {
 
   private columns: number = 10;
   private rows: number = 10;
+  private score: number = 0;
 
   public get Camera(): Camera {
     return this.camera;
@@ -48,5 +49,12 @@ export class GameModel extends Component {
   }
   public set Rows(row: number) {
     this.rows = row;
+  }
+
+  public get Score(): number {
+    return this.score;
+  }
+  public set Score(score: number) {
+    this.score = score;
   }
 }
