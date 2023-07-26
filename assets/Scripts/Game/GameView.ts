@@ -4,7 +4,6 @@ import {
   AudioSource,
   color,
   Component,
-  director,
   instantiate,
   Label,
   Node,
@@ -12,8 +11,14 @@ import {
   Sprite,
   SpriteFrame,
   sys,
+  Tween,
+  tween,
+  v2,
+  Vec2,
   Vec3,
+  find,
 } from "cc";
+import { StoreAPI } from "../Data/StoreAPI";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameView")
@@ -82,6 +87,8 @@ export class GameView extends Component {
 
   private gridBackground: Node[][] = [];
 
+  private gameClient;
+
   private squaresGap: number = -0.5;
   private gridSize: number = 50;
   private darkMode: boolean;
@@ -89,6 +96,12 @@ export class GameView extends Component {
   private highScore: number = 0;
 
   protected start(): void {
+    let parameters = find("GameClient");
+    let gameClientParams = parameters.getComponent(StoreAPI);
+    // if (DEBUG === false) {
+
+    // }
+    this.gameClient = gameClientParams.gameClient;
     this.readLocalStorage();
   }
 
@@ -225,15 +238,37 @@ export class GameView extends Component {
     }
   }
 
-  gameOver(curSc: number): void {
-    this.gameOverPopUp.setPosition(0, 0, 0);
+  async gameOver(curSc: number, id: string): Promise<void> {
+    let _this = this;
+    this.readLocalStorage();
     this.gameOverPopUp.getComponent(Animation).play();
 
     this.currentScoreLbPop.string = `${curSc}`;
-
-    this.readLocalStorage();
-
-    console.log(this.highScore);
     this.highScoreLbPop.string = `Best score: ${this.highScore}`;
+
+    console.log(id);
+    await this.gameClient.match
+      .completeMatch(id, {
+        score: curSc,
+      })
+      .then((data) => {
+        console.log("check ->", id);
+        console.log(curSc);
+      })
+      .catch((error) => console.log(error));
+  }
+
+  animPoint(targetPoint: number, curPoint: number) {
+    let tmp = curPoint / 5 - 1;
+    let time = 0.5 / tmp;
+    this.schedule(
+      () => {
+        targetPoint += 5;
+        this.currentScoreLb.string = `${Math.floor(targetPoint)}`;
+      },
+      0,
+      tmp,
+      time
+    );
   }
 }

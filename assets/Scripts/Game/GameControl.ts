@@ -1,10 +1,10 @@
 import {
   _decorator,
-  Animation,
   Component,
   director,
   EventMouse,
   EventTouch,
+  find,
   instantiate,
   Node,
   randomRangeInt,
@@ -17,7 +17,10 @@ import { GameModel } from "./GameModel";
 import { GameView } from "./GameView";
 import { ShapeData } from "../Data/ShapeData";
 import { MusicGame } from "./MusicGame";
+import { StoreAPI } from "../Data/StoreAPI";
 const { ccclass, property } = _decorator;
+
+let matchId: string;
 
 @ccclass("GameControl")
 export class GameControl extends Component {
@@ -32,6 +35,8 @@ export class GameControl extends Component {
 
   @property({ type: Node })
   private shapeContainer: Node;
+
+  private gameClient;
 
   private newBlock: Node | null;
 
@@ -57,6 +62,24 @@ export class GameControl extends Component {
   private squarePiecePos: Vec2 = new Vec2(0, 0);
   private startBlockPos: Vec3 = new Vec3(0, 0, 0);
   private mousePos: Vec3 = new Vec3(0, 0, 0);
+
+  // API call
+  protected async onLoad(): Promise<void> {
+    let _this = this;
+    let parameters = find("GameClient");
+    let gameClientParams = parameters.getComponent(StoreAPI);
+    // if (DEBUG === false) {
+
+    // }
+    this.gameClient = gameClientParams.gameClient;
+    console.log("khoi tao", matchId);
+
+    if (matchId === undefined) {
+      console.log("new");
+      matchId = gameClientParams.matchId;
+      console.log(matchId);
+    }
+  }
 
   protected start(): void {
     this.startGame();
@@ -90,7 +113,7 @@ export class GameControl extends Component {
       this.spawnNewBlockAfterUsed();
     }
 
-    TweenSystem.instance.update(dt);
+    TweenSystem.instance.update(dt); // make anim smoother
   }
 
   private initMap(): void {
@@ -137,6 +160,14 @@ export class GameControl extends Component {
         },
         this
       );
+    });
+  }
+
+  private disableInteractShapes() {
+    const selectedNodes = this.view.ShapeContainer.slice(0, 3);
+
+    selectedNodes.forEach((node) => {
+      node.active = false;
     });
   }
 
@@ -320,6 +351,7 @@ export class GameControl extends Component {
       }
       a++;
     }
+
     this.sumPoint += this.countBlockInShapes;
     this.view.ShapeContainer[this.indexBlock].removeAllChildren();
 
@@ -334,8 +366,10 @@ export class GameControl extends Component {
 
     const lose = this.checkLose();
     if (lose) {
+      console.log(matchId);
+      this.disableInteractShapes();
       this.scheduleOnce(() => {
-        this.view.gameOver(this.sumPoint);
+        this.view.gameOver(this.sumPoint, matchId);
       }, 1);
     }
 
@@ -386,6 +420,7 @@ export class GameControl extends Component {
     }
 
     comboEat = clearedColumnsCount + clearedRowsCount;
+    // this.view.animPoint(this.sumPoint, comboEat);
     this.makeCombo(comboEat, clearedRowsCount, clearedColumnsCount);
   }
 
@@ -452,8 +487,18 @@ export class GameControl extends Component {
     }
   }
 
-  private handleReplay(): void {
-    director.loadScene("GamePlay");
+  private async handleReplay(): Promise<void> {
+    let parameters = find("GameClient");
+    let gameClientParams = parameters.getComponent(StoreAPI);
+
+    await gameClientParams.gameClient.match
+      .startMatch()
+      .then((data) => {
+        matchId = data.matchId;
+        gameClientParams.matchId = matchId;
+        director.loadScene("GamePlay");
+      })
+      .catch((error) => console.log(error));
   }
 
   private makeCombo(combo: number, clearRow: number, clearCol: number): void {
