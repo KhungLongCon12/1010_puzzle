@@ -11,10 +11,6 @@ import {
   Sprite,
   SpriteFrame,
   sys,
-  Tween,
-  tween,
-  v2,
-  Vec2,
   Vec3,
   find,
 } from "cc";
@@ -98,9 +94,7 @@ export class GameView extends Component {
   protected start(): void {
     let parameters = find("GameClient");
     let gameClientParams = parameters.getComponent(StoreAPI);
-    // if (DEBUG === false) {
 
-    // }
     this.gameClient = gameClientParams.gameClient;
     this.readLocalStorage();
   }
@@ -258,9 +252,15 @@ export class GameView extends Component {
 
   animPoint(curSc: number, countBlock: number) {
     let tmp = 0;
-    let time = 150 / countBlock;
+    let time: number = 0;
     let lb = this.currentScoreLb;
     let start = parseInt(lb.string);
+
+    if (countBlock < 3) {
+      time = 150 / 3;
+    } else {
+      time = 150 / countBlock;
+    }
 
     const inter = setInterval(doInter, time);
 
@@ -269,12 +269,13 @@ export class GameView extends Component {
       start++;
       tmp++;
 
-      if (start === curSc) clearInterval(inter);
+      if (start === curSc) {
+        clearInterval(inter);
+      }
     }
   }
 
-  animEat(x: number, y: number) {
-    console.log("check eat ->", this.gridBackground[x][y]);
-    this.gridBackground[x][y].getComponent(Animation).play();
+  animEat(row: number, col: number) {
+    this.gridBackground[row][col].getComponent(Animation).play();
   }
 }

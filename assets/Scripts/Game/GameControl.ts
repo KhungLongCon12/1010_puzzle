@@ -87,17 +87,12 @@ export class GameControl extends Component {
   }
 
   private startGame(): void {
-    const indexSound = randomRangeInt(0, 1);
     this.createGrid();
     this.initListener();
     this.spawnNewBlock();
     this.initMap();
 
-    if (indexSound === 1) {
-      this.music.onAudioQueue(1);
-    } else {
-      this.music.onAudioQueue(0);
-    }
+    this.music.onAudioQueue();
   }
 
   private createGrid(): void {
@@ -109,12 +104,12 @@ export class GameControl extends Component {
   }
 
   protected update(dt: number): void {
+    TweenSystem.instance.update(dt); // make anim smoother
+
     if (this.remainingBlocks === 3) {
       this.isSpawn = true;
       this.spawnNewBlockAfterUsed();
     }
-
-    TweenSystem.instance.update(dt); // make anim smoother
   }
 
   private initMap(): void {
@@ -362,7 +357,7 @@ export class GameControl extends Component {
     this.gridMap = temp;
     this.gridMapColor = tempColor;
 
-    this.clearRowColum(temp);
+    this.clearRowAndColum(temp);
 
     this.makeCombo(this.countBlockInShapes);
 
@@ -384,38 +379,44 @@ export class GameControl extends Component {
     this.remainingBlocks++;
   }
 
-  private clearRowColum(arr: number[][]): void {
+  private clearRowAndColum(arr: number[][]): void {
     const size = this.gridMap.length;
 
     let clearRow: Array<boolean> = [];
     let clearCol: Array<boolean> = [];
 
     for (let row = size - 1; row >= 0; row--) {
-      let temp = false;
+      let temp: boolean = false;
       if (this.isRowFull(row)) {
         this.clearedRowsCount++;
         temp = true;
       }
-      console.log("check row ->", clearRow);
+
       clearRow.push(temp);
     }
 
     for (let col = size - 1; col >= 0; col--) {
-      let temp = false;
+      let temp: boolean = false;
       if (this.isColumnFull(col)) {
         this.clearedColumnsCount++;
         temp = true;
       }
-      console.log("check col ->", clearCol);
+
       clearCol.push(temp);
     }
 
     for (let i = 0; i < size; i++) {
       if (clearRow[i]) {
         this.clearRowAndColor(size - 1 - i);
+        for (let j = 0; j < size; j++) {
+          this.view.animEat(size - 1 - i, j);
+        }
       }
       if (clearCol[i]) {
         this.clearColumnAndColor(size - 1 - i);
+        for (let k = 0; k < size; k++) {
+          this.view.animEat(k, size - 1 - i);
+        }
       }
     }
   }
@@ -591,15 +592,4 @@ export class GameControl extends Component {
     }
     this.statusBlock = [true, true, true];
   }
-
-  // private conditionPlayAnimEat() {
-  //   for (let i = 0; i < this.gridMap.length; i++) {
-  //     for (let j = 0; j < this.gridMap[i].length; j++) {
-  //       if (temp[i][j] === 1) {
-  //         this.gridMap[i][j] = 0;
-  //         this.view.animEat(i, j);
-  //       }
-  //     }
-  //   }
-  // }
 }
