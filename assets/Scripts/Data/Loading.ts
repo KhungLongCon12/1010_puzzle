@@ -1,4 +1,4 @@
-import GameClient from "@onechaintech/gamesdk-beta";
+import GameClient from "@onechaintech/gamesdk-dev";
 import { StoreAPI } from "./StoreAPI";
 import { _decorator, Component, director, find, Node, ProgressBar } from "cc";
 const { ccclass, property } = _decorator;
@@ -20,8 +20,8 @@ export class Loading extends Component {
       let parameters = new Node("GameClient");
       if (this.gameClient === undefined) {
         this.gameClient = new GameClient(
-          "64ba576e31ded7cab4153dfe",
-          "80c06804-1d9e-4ebc-83c8-13856a67ab92",
+          "64ba2cf2798ddd0f4a2d92b9",
+          "eefdf7c8-a562-4780-9231-a86d0d613729",
           window.parent,
           { dev: true }
         );

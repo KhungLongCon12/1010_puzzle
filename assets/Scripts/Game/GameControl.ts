@@ -44,8 +44,8 @@ export class GameControl extends Component {
 
   private newBlock: Node | null;
 
-  private gridMap: (number | null)[][] = [];
-  private gridMapColor: (number | null)[][] = [];
+  private gridMap: number[][] = [];
+  private gridMapColor: number[][] = [];
   private arrNewBlock: number[][][] = [];
   private statusBlock: boolean[] = [true, true, true];
 
@@ -134,7 +134,9 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_START,
         (event) => {
-          if (this.statusBlock[index]) this.onTouchStart(event, node);
+          if (this.statusBlock[index]) {
+            this.onTouchStart(event, node);
+          }
         },
         this
       );
@@ -142,7 +144,9 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_MOVE,
         (event) => {
-          if (this.statusBlock[index]) this.onTouchMove(event, node);
+          if (this.statusBlock[index]) {
+            this.onTouchMove(event, node);
+          }
         },
         this
       );
@@ -150,7 +154,9 @@ export class GameControl extends Component {
       node.on(
         Node.EventType.TOUCH_END,
         (event) => {
-          if (this.statusBlock[index]) this.onTouchEnd(event, node, index);
+          if (this.statusBlock[index]) {
+            this.onTouchEnd(event, node, index);
+          }
 
           this.putArrayIntoMapGrid(event);
         },
@@ -176,18 +182,29 @@ export class GameControl extends Component {
   }
 
   private onTouchMove(event: EventTouch, node: Node) {
+    const mousePos = this.getLocation(event);
+
+    const mouse = this.model.Camera.screenToWorld(
+      new Vec3(event.getLocation().x, event.getLocation().y, 0)
+    );
+    let newPos = new Vec3();
+    newPos = this.shapeContainer.inverseTransformPoint(newPos, mouse);
+
     if (this.isMoving === true) {
       node.position = this.getLocation(event);
 
       this.countBlockInShapes = node.children.length;
       this.isShapeMoved = true;
+
+      if (mouse.y > 620 || mouse.y < 20 || mouse.x < 10 || mouse.x > 950) {
+        this.onTouchEnd(event, node);
+      }
     }
   }
 
-  private onTouchEnd(event: EventTouch, node: Node, index: number): void {
+  private onTouchEnd(event: EventTouch, node: Node, index?: number): void {
     this.indexBlock = index;
     this.isMoving = false;
-
     node.setScale(1, 1);
     node.position = new Vec3(this.startBlockPos);
   }
@@ -307,7 +324,7 @@ export class GameControl extends Component {
 
       this.checkBlock(y, x);
 
-      this.view.showResult(this.model.Score);
+      this.view.showResultInPlay(this.model.Score);
     }
 
     // Deleted color in grid
@@ -327,6 +344,8 @@ export class GameControl extends Component {
     let temp: number[][] = this.gridMap;
     let tempColor: number[][] = this.gridMapColor;
 
+    let tempV2: Vec2[] = [];
+
     for (let i = x - 2; i <= x + 2; i++) {
       b = 0;
       for (let j = y - 2; j <= y + 2; j++) {
@@ -336,26 +355,28 @@ export class GameControl extends Component {
           }
         } else {
           if (this.arrNewBlock[this.indexBlock][a][b] === 1) {
-            if (temp[i][j] === 0 && tempColor[i][j] === 0) {
-              temp[i][j] = 1;
-              tempColor[i][j] = this.curIndexSprite;
-            } else return;
+            if (this.gridMap[i][j] === 0 && this.gridMapColor[i][j] === 0) {
+              tempV2.push(new Vec2(i, j));
+            } else {
+              return;
+            }
           }
         }
-
         b++;
       }
       a++;
     }
+
+    tempV2.map((item) => {
+      this.gridMap[item.x][item.y] = 1;
+      this.gridMapColor[item.x][item.y] = this.curIndexSprite;
+    });
 
     this.view.ShapeContainer[this.indexBlock].removeAllChildren();
 
     this.statusBlock[this.indexBlock] = false;
     this.checkResetStatus();
     this.indexBlock = null;
-
-    this.gridMap = temp;
-    this.gridMapColor = tempColor;
 
     this.clearRowAndColum(temp);
 

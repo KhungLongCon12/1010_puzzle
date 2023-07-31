@@ -118,6 +118,14 @@ export class GameView extends Component {
     this.checkChangeScenes();
   }
 
+  saveStatusMode(modeOn: boolean) {
+    sys.localStorage.setItem("statusMode1010", JSON.stringify(modeOn));
+  }
+
+  saveStatusVol(checkVol: number) {
+    sys.localStorage.setItem("statusCheckVol1010", JSON.stringify(checkVol));
+  }
+
   private checkChangeScenes(): void {
     if (this.darkMode) {
       this.lightOn.active = false;
@@ -204,6 +212,7 @@ export class GameView extends Component {
       this.layout.color = color(255, 255, 255, 128);
     }
     this.darkMode = this.darkMode ? false : true;
+    this.saveStatusMode(this.darkMode);
   }
 
   handleCheckVolumeBtn() {
@@ -219,9 +228,10 @@ export class GameView extends Component {
     }
 
     this.audio.volume = this.checkVolume;
+    this.saveStatusVol(this.checkVolume);
   }
 
-  showResult(curSc: number) {
+  showResultInPlay(curSc: number) {
     if (curSc > this.highScore) {
       this.highScoreLb.string = `Best score: ${curSc}`;
       this.currentScoreLb.string = `${curSc}`;
@@ -233,8 +243,11 @@ export class GameView extends Component {
   }
 
   async gameOver(curSc: number, id: string): Promise<void> {
+    this.gameOverPopUp.active = true;
+
     let _this = this;
     this.readLocalStorage();
+
     this.gameOverPopUp.getComponent(Animation).play();
 
     this.currentScoreLbPop.string = `${curSc}`;
